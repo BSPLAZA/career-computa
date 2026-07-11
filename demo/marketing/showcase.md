@@ -8,4 +8,4 @@ The signature mechanic is trust graduation: every draft type carries a trust met
 
 Everything is verifiable live: a public ledger lists every completed task with a verify link to the live posting, the full multi-agent trace with per-step cost, and the artifacts. Failures stay visible. Built on-site in the 8-hour sprint with Hermes as coding partner and runtime, Convex as the backend, Cloudflare hosting, Linkup research, and Wispr voice input.
 
-Live ledger: [URL]
+Live ledger: https://career-agency-web.bsplaza.workers.dev

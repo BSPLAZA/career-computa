@@ -25,7 +25,7 @@ console.log("Scorer: agents/intake.js#applyHardFilters(job, hardFilters)");
 
 const cases = fixtures.jobCases.map((item) => {
   const compRange = item.baseSalary
-    ? `${item.baseSalary.min}-${item.baseSalary.max} ${item.baseSalary.currency}`
+    ? `${item.baseSalary.min} ${item.baseSalary.currency} minimum`
     : undefined;
   try {
     const verdict = applyHardFilters({ ...item, compRange }, fixtures.profile.hardFilters);

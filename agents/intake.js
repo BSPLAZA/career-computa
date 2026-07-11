@@ -315,7 +315,7 @@ export async function runIntake(ctx) {
       const dmRes = await tr.step('drafter', 'dm_draft', `DM draft for ${pick.title}`, async () => {
         const r = await chatJson({
           model: MODEL_DEFAULT, maxTokens: 500, temperature: 0.6,
-          system: 'You draft a short direct message to a hiring contact. Respond ONLY with JSON {"subject": "...", "body": "..."}. Subject under 60 chars and enticing without clickbait. Body under 120 words, specific, references one real company fact from the research, no em dashes, no invented candidate facts. If candidate details are sparse, use the placeholder [your name] and keep claims generic; never refuse.',
+          system: 'You draft a short direct message written BY the candidate TO a hiring contact at the company (first person, candidate voice; never a message addressed to the candidate). Respond ONLY with JSON {"subject": "...", "body": "..."}. Subject under 60 chars and enticing without clickbait. Body under 120 words, specific, references one real company fact from the research, no em dashes, no invented candidate facts. Address the recipient generically (e.g. Hi there) since their name is unknown. If candidate details are sparse, keep claims generic; never refuse.',
           user: `Candidate: ${profile.name || 'the candidate'}, ${profile.headline || ''}.\nRole: ${pick.title} at ${boardInfo.name}.\nResearch: ${clip(research.answer, 800)}\nFit evidence: ${fit.evidence.map((e) => e.resumeLine).join(' | ')}`,
         });
         const dm = r.value;

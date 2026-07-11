@@ -1,6 +1,6 @@
 # Launch posts: LinkedIn
 
-Two drafts, first person as Bryan. Fill [URL] with the live ledger link and [N]/[S]/[D] with live counters before posting. No em dashes anywhere.
+Two drafts, first person as Bryan. Fill https://career-agency-web.bsplaza.workers.dev with the live ledger link and [N]/[S]/[D] with live counters before posting. No em dashes anywhere.
 
 ---
 
@@ -22,7 +22,7 @@ What stays human: the send. I paste the note into LinkedIn myself. That is delib
 
 The mechanic that makes it a product and not a script: trust graduation. Every draft type has a trust meter. Approve without edits enough times in a row and the review step disappears for that type. Edit once and the streak resets. Undo anytime. You literally watch the tap disappear as the agent earns it.
 
-[N] real tasks completed today, every one on a public ledger with a verify link to the live posting, the full agent trace with per-step cost, and the artifacts: [URL]
+[N] real tasks completed today, every one on a public ledger with a verify link to the live posting, the full agent trace with per-step cost, and the artifacts: https://career-agency-web.bsplaza.workers.dev
 
 Built with Hermes as my coding partner and runtime. Onboarding by voice. Convex as the backend, Cloudflare hosting, Linkup research. And it is multi-tenant: anyone can sign up with their own LinkedIn export or resume and get a real package back.
 
@@ -42,6 +42,6 @@ What reaches me is a finished, apply-ready package. My only job is the send deci
 
 Today's numbers, live and verifiable on a public ledger: [N] tasks completed, [D] packages delivered, [S] other people signed up with their own data and got real packages back. Every ledger row has a verify link: the live posting on the company's own board, the full agent trace, the artifacts.
 
-See it running: [URL]
+See it running: https://career-agency-web.bsplaza.workers.dev
 
 Built in 8 hours on the floor with Hermes, on Convex and Cloudflare, with Linkup powering the research. The resume variants it produced are the ones I am actually submitting this week.

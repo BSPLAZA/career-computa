@@ -1,6 +1,6 @@
 # Launch posts: X
 
-Two drafts, first person as Bryan. Fill [URL] with the live ledger link and [N]/[S]/[D] with live counters before posting. No em dashes anywhere.
+Two drafts, first person as Bryan. Fill https://career-agency-web.bsplaza.workers.dev with the live ledger link and [N]/[S]/[D] with live counters before posting. No em dashes anywhere.
 
 ---
 
@@ -14,7 +14,7 @@ I only tap to send. And here's the part I love: every approval with zero edits b
 
 [N] real tasks completed so far. Every one is on a public ledger with a VERIFY link: the live posting, the full agent trace with per-step cost, the artifacts.
 
-Watch it run: [URL]
+Watch it run: https://career-agency-web.bsplaza.workers.dev
 
 Built in one day, on the floor, with Hermes. Onboarded by voice. Backed by Convex, hosted on Cloudflare, research by Linkup.
 
@@ -32,6 +32,6 @@ What lands in my Telegram is a finished package: a real posting from a real comp
 
 The mechanic I'm proudest of: trust graduation. Approve a draft type enough times without editing and the review tap turns off for that type. The agent earned it. One click brings the tap back.
 
-[N] tasks completed today, [D] packages delivered, all on a public ledger anyone can verify: [URL]
+[N] tasks completed today, [D] packages delivered, all on a public ledger anyone can verify: https://career-agency-web.bsplaza.workers.dev
 
 It isn't just me. Anyone can sign up with their own data and get a real package back. If you're at the venue, find me and scan the QR.

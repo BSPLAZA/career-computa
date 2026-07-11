@@ -1,0 +1,140 @@
+{
+  "timestamp": "2026-07-11T22:37:39.951Z",
+  "fixture": "fit-eval-v1",
+  "fixtureFetchedAt": "2026-07-11T22:30:00Z",
+  "scorer": "agents/intake.js#applyHardFilters(job, hardFilters)",
+  "hardFilters": [
+    "location_excludes:dublin",
+    "location_excludes:london",
+    "location_excludes:berlin",
+    "comp_floor:150000"
+  ],
+  "summary": {
+    "passed": 12,
+    "failed": 0,
+    "total": 12,
+    "percent": 100
+  },
+  "cases": [
+    {
+      "id": "anthropic-5195866008",
+      "company": "Anthropic",
+      "sourceUrl": "https://job-boards.greenhouse.io/anthropic/jobs/5195866008",
+      "expected": "pass",
+      "actual": "pass",
+      "result": "PASS",
+      "expectedReason": "San Francisco is an allowed onsite location; disclosed base is unavailable",
+      "scorerReason": null
+    },
+    {
+      "id": "anthropic-5247640008",
+      "company": "Anthropic",
+      "sourceUrl": "https://job-boards.greenhouse.io/anthropic/jobs/5247640008",
+      "expected": "pass",
+      "actual": "pass",
+      "result": "PASS",
+      "expectedReason": "San Francisco is an allowed onsite location; disclosed base is unavailable",
+      "scorerReason": null
+    },
+    {
+      "id": "anthropic-5208218008",
+      "company": "Anthropic",
+      "sourceUrl": "https://job-boards.greenhouse.io/anthropic/jobs/5208218008",
+      "expected": "reject",
+      "actual": "reject",
+      "result": "PASS",
+      "expectedReason": "Onsite location is outside the San Francisco Bay Area and no remote option is listed",
+      "scorerReason": "location \"Dublin, IE\" matches excluded \"dublin\" (rule: location_excludes:dublin)"
+    },
+    {
+      "id": "stripe-7979422",
+      "company": "Stripe",
+      "sourceUrl": "https://stripe.com/jobs/search?gh_jid=7979422",
+      "expected": "pass",
+      "actual": "pass",
+      "result": "PASS",
+      "expectedReason": "Remote work or San Francisco is allowed; disclosed base is unavailable",
+      "scorerReason": null
+    },
+    {
+      "id": "stripe-7721834",
+      "company": "Stripe",
+      "sourceUrl": "https://stripe.com/jobs/search?gh_jid=7721834",
+      "expected": "reject",
+      "actual": "reject",
+      "result": "PASS",
+      "expectedReason": "Onsite location is outside the San Francisco Bay Area and no remote option is listed",
+      "scorerReason": "location \"London\" matches excluded \"london\" (rule: location_excludes:london)"
+    },
+    {
+      "id": "stripe-7984866",
+      "company": "Stripe",
+      "sourceUrl": "https://stripe.com/jobs/search?gh_jid=7984866",
+      "expected": "pass",
+      "actual": "pass",
+      "result": "PASS",
+      "expectedReason": "Remote work is allowed; disclosed base is unavailable",
+      "scorerReason": null
+    },
+    {
+      "id": "figma-5989185004",
+      "company": "Figma",
+      "sourceUrl": "https://boards.greenhouse.io/figma/jobs/5989185004?gh_jid=5989185004",
+      "expected": "pass",
+      "actual": "pass",
+      "result": "PASS",
+      "expectedReason": "San Francisco is an allowed onsite location; disclosed base is unavailable",
+      "scorerReason": null
+    },
+    {
+      "id": "figma-5364702004",
+      "company": "Figma",
+      "sourceUrl": "https://boards.greenhouse.io/figma/jobs/5364702004?gh_jid=5364702004",
+      "expected": "reject",
+      "actual": "reject",
+      "result": "PASS",
+      "expectedReason": "Onsite location is outside the San Francisco Bay Area and no remote option is listed",
+      "scorerReason": "location \"Berlin, Germany\" matches excluded \"berlin\" (rule: location_excludes:berlin)"
+    },
+    {
+      "id": "sierra-422cb7bb",
+      "company": "Sierra",
+      "sourceUrl": "https://jobs.ashbyhq.com/sierra/422cb7bb-ab03-447b-808c-6d72f59bbd2f",
+      "expected": "pass",
+      "actual": "pass",
+      "result": "PASS",
+      "expectedReason": "San Francisco is allowed and the disclosed base minimum is at least 150000 USD",
+      "scorerReason": null
+    },
+    {
+      "id": "sierra-6c3fb4c1",
+      "company": "Sierra",
+      "sourceUrl": "https://jobs.ashbyhq.com/sierra/6c3fb4c1-e6ba-4e47-8d02-93ea89e75619",
+      "expected": "reject",
+      "actual": "reject",
+      "result": "PASS",
+      "expectedReason": "The disclosed USD base salary minimum is below 150000",
+      "scorerReason": "comp range \"140000 USD minimum\" below floor 150000 (rule: comp_floor:150000)"
+    },
+    {
+      "id": "linear-b7669c4b",
+      "company": "Linear",
+      "sourceUrl": "https://jobs.ashbyhq.com/linear/b7669c4b-eeca-421d-ba9a-d90203f6fcb2",
+      "expected": "pass",
+      "actual": "pass",
+      "result": "PASS",
+      "expectedReason": "Remote work is allowed; disclosed base is unavailable",
+      "scorerReason": null
+    },
+    {
+      "id": "linear-86abcce0",
+      "company": "Linear",
+      "sourceUrl": "https://jobs.ashbyhq.com/linear/86abcce0-04b2-405c-9a8e-e0ca84813914",
+      "expected": "pass",
+      "actual": "pass",
+      "result": "PASS",
+      "expectedReason": "Remote work is allowed; disclosed base is unavailable",
+      "scorerReason": null
+    }
+  ]
+}
