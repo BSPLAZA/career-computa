@@ -26,7 +26,7 @@ export interface State {
   runsFocus?: { runId?: Id; taskId?: Id };
 }
 
-export type TabId = 'onboard' | 'queue' | 'pipeline' | 'ledger' | 'runs' | 'roster';
+export type TabId = 'onboard' | 'ready' | 'queue' | 'pipeline' | 'ledger' | 'runs' | 'roster';
 
 type Action =
   | { type: 'setTab'; tab: TabId; runsFocus?: State['runsFocus'] }

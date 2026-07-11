@@ -105,6 +105,24 @@ export const setJobState = mutation({
   },
 });
 
+// Canonical URLs of postings this user has already been served (assessed or further
+// along the pipeline). The intake worker excludes these so a posting never double counts.
+export const assessedUrlsForUser = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const states = ["assessed", "queued", "delivered", "applied", "screening", "interviewing"] as const;
+    const urls: string[] = [];
+    for (const state of states) {
+      const rows = await ctx.db
+        .query("jobs")
+        .withIndex("by_user_state", (q) => q.eq("userId", args.userId).eq("state", state))
+        .collect();
+      for (const r of rows) urls.push(r.canonicalUrl);
+    }
+    return urls;
+  },
+});
+
 export const getJob = query({
   args: { jobId: v.id("jobs") },
   handler: async (ctx, args) => ctx.db.get(args.jobId),

@@ -6,14 +6,20 @@ import Pipeline from './tabs/Pipeline';
 import Ledger from './tabs/Ledger';
 import Runs from './tabs/Runs';
 import Roster from './tabs/Roster';
+import Help from './Help';
 import { LiveOnboard, LiveQueue, LiveLedger, LivePipeline, LiveRuns } from './live/LiveTabs';
+import LiveApplyReady from './live/ApplyReady';
+import LiveRoster from './live/Roster';
 import LiveBrief from './live/Brief';
 
-// /brief/<artifactId> is the unique delivery link surface; everything else is the dashboard.
+// /brief/<artifactId> is the unique delivery link surface; /help is the
+// operator guide; everything else is the dashboard.
 const briefMatch = window.location.pathname.match(/^\/brief\/([A-Za-z0-9_-]+)\/?$/);
+const helpMatch = /^\/help\/?$/.test(window.location.pathname);
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'onboard', label: 'Onboard' },
+  { id: 'ready', label: 'Ready' },
   { id: 'queue', label: 'Queue' },
   { id: 'pipeline', label: 'Pipeline' },
   { id: 'ledger', label: 'Ledger' },
@@ -21,20 +27,26 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'roster', label: 'Roster' },
 ];
 
+function Brand() {
+  return <div className="brand">Career <span>Computa</span></div>;
+}
+
 export default function App() {
   const { state, dispatch } = useStore();
 
-  if (briefMatch) {
+  if (briefMatch || helpMatch) {
     return (
       <>
         <header className="topbar">
-          <div className="brand">Career <span>Agency</span></div>
+          <Brand />
           <div className="topbar-right"><a href="/" style={{ fontSize: 13 }}>dashboard</a></div>
         </header>
         <main>
-          {LIVE
-            ? <LiveBrief artifactId={briefMatch[1]} />
-            : <div className="panel empty">Brief links need the live backend; this build is in mock mode.</div>}
+          {helpMatch
+            ? <Help />
+            : LIVE
+              ? <LiveBrief artifactId={briefMatch![1]} />
+              : <div className="panel empty">Brief links need the live backend; this build is in mock mode.</div>}
         </main>
       </>
     );
@@ -43,7 +55,7 @@ export default function App() {
   return (
     <>
       <header className="topbar">
-        <div className="brand">Career <span>Agency</span></div>
+        <Brand />
         <nav className="tabs">
           {TABS.map(t => (
             <button
@@ -56,7 +68,8 @@ export default function App() {
           ))}
         </nav>
         <div className="topbar-right">
-          <label className="toggle" title="Masks last names and emails; never renders message bodies">
+          <a href="/help" style={{ fontSize: 13 }}>help</a>
+          <label className="toggle" title="Masks last names and emails and hides other people's message bodies; your own drafts stay visible. Off by default.">
             <input
               type="checkbox"
               checked={state.demoMode}
@@ -76,11 +89,12 @@ export default function App() {
       )}
       <main>
         {state.activeTab === 'onboard' && (LIVE ? <LiveOnboard /> : <Onboard />)}
+        {state.activeTab === 'ready' && (LIVE ? <LiveApplyReady /> : <div className="panel empty">Apply-ready cards need the live backend; this build is in mock mode.</div>)}
         {state.activeTab === 'queue' && (LIVE ? <LiveQueue /> : <Queue />)}
         {state.activeTab === 'pipeline' && (LIVE ? <LivePipeline /> : <Pipeline />)}
         {state.activeTab === 'ledger' && (LIVE ? <LiveLedger /> : <Ledger />)}
         {state.activeTab === 'runs' && (LIVE ? <LiveRuns /> : <Runs />)}
-        {state.activeTab === 'roster' && <Roster />}
+        {state.activeTab === 'roster' && (LIVE ? <LiveRoster /> : <Roster />)}
       </main>
     </>
   );

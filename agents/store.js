@@ -87,6 +87,10 @@ class ConvexStore {
     return { jobId: r.jobId, deduped: r.deduped };
   }
   assessJob(args) { return this.mutation('jobs:assessJob', args); }
+  // canonical URLs of jobs already assessed (or further along) for this user
+  assessedUrlsForUser(userId) { return this.query('jobs:assessedUrlsForUser', { userId }); }
+  // per-action-kind approval streaks and graduation flags (trust graduation)
+  trustStatus(userId) { return this.query('trust:status', { userId }); }
   markFirstUse(args) { return this.mutation('users:markFirstUse', args).catch(() => {}); }
   async signup({ email, isTeam = true, demoMode = false }) {
     const r = await this.mutation('users:signup', { email, isTeam, demoMode });
@@ -161,6 +165,11 @@ class LocalStore {
     this.patch('jobs', jobId, { fitScore, caveats, fitEvidence, hardFilterResult, state: rejected ? 'auto_rejected' : 'assessed' });
     return { ok: true, state: rejected ? 'auto_rejected' : 'assessed' };
   }
+  async assessedUrlsForUser(userId) {
+    const DONE = new Set(['assessed', 'queued', 'delivered', 'applied', 'screening', 'interviewing']);
+    return this.readAll('jobs').filter((j) => j.userId === userId && DONE.has(j.state)).map((j) => j.canonicalUrl);
+  }
+  async trustStatus() { return { threshold: 5, kinds: [] }; /* local stub: no graduation offline */ }
   async markFirstUse() { /* local no-op */ }
   async signup({ email, isTeam = true, demoMode = false }) {
     const existing = this.readAll('users').find((u) => u.email === email);

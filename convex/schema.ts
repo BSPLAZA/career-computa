@@ -174,6 +174,13 @@ export default defineSchema({
     .index("by_runId", ["runId"])
     .index("by_kind", ["kind"]),
 
+  // Internal runtime config (not part of the frozen contract surface). Currently:
+  // key "trust_threshold" holds the clean-approval streak needed for graduation (demo default 5).
+  config: defineTable({
+    key: v.string(),
+    value: v.number(),
+  }).index("by_key", ["key"]),
+
   feedback: defineTable({
     userId: v.id("users"),
     artifactId: v.optional(v.id("artifacts")),

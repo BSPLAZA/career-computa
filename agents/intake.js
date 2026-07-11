@@ -6,7 +6,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { REPO_ROOT } from './env.js';
-import { getBoard } from './boards.js';
+import { getBoard, mapToBoard, extractCompanyCandidates, BOARDS } from './boards.js';
 import { fetchBoard, ensureDescription } from './ats.js';
 import { chat, chatJson, parseJson, MODEL_DEFAULT, MODEL_CHEAP } from './llm.js';
 import { linkupSearch } from './linkup.js';
@@ -98,18 +98,41 @@ async function finalizeArtifact(store, artifact) {
   return { id, content: lint.text, gateResults };
 }
 
-// ---------- optional resume renderer from the parsers lane ----------
+// ---------- resume renderer from the parsers lane ----------
+// Returns { renderResume, renderPdf } or null. renderResume is the HTML hot path;
+// renderPdf is the async on-request PDF (never awaited inside the pipeline).
 async function loadRenderer() {
   for (const rel of ['parsers/render.js', 'parsers/render.mjs', 'parsers/index.js']) {
     const p = join(REPO_ROOT, rel);
     if (existsSync(p)) {
       try {
         const mod = await import(pathToFileURL(p).href);
-        if (typeof mod.renderResume === 'function') return mod.renderResume;
-      } catch { /* fall through to stub */ }
+        if (typeof mod.renderResume === 'function') {
+          return { renderResume: mod.renderResume, renderPdf: typeof mod.renderPdf === 'function' ? mod.renderPdf : null };
+        }
+      } catch { /* fall through to honest no-renderer path */ }
     }
   }
   return null;
+}
+
+// ---------- board resolution: exact key, then free-text company mapping ----------
+// Quick-path inputs carry free-text company names ("Data bricks"); map them to the
+// registry before giving up. Returns { board, note } or { board: null, misses }.
+function resolveBoard(rawInput) {
+  const key = String(rawInput || '').replace(/^board:/, '').trim();
+  try { return { board: getBoard(key), note: `exact board key "${key}"` }; } catch { /* not a key */ }
+  const candidates = extractCompanyCandidates(rawInput);
+  const misses = [];
+  for (const cand of candidates) {
+    const hit = mapToBoard(cand);
+    if (hit) {
+      const skipped = misses.length ? ` (no board for: ${misses.join(', ')})` : '';
+      return { board: hit.board, note: `mapped "${cand}" to ${hit.board.key} via ${hit.matched}${skipped}` };
+    }
+    misses.push(cand);
+  }
+  return { board: null, misses: misses.length ? misses : [key] };
 }
 
 // ---------- the pipeline ----------
@@ -128,23 +151,30 @@ export async function runIntake(ctx) {
 
   let outcome = { taskStatus: 'failed', summary: '' };
   try {
-    // 1. manager plans; unmappable input escalates with full context instead of dying
+    // 1. manager plans; free-text company names map to the board registry (exact,
+    // then fuzzy); only true misses escalate, with friendly context
     const planRes = await tr.step('manager', 'plan',
       `intake task ${task._id}: input=${clip(boardKey, 80)}, top=${top}, user=${userId}`,
       async () => {
-        let board = null;
-        try { board = getBoard(boardKey); } catch { /* not a known board key */ }
-        if (!board) {
-          return { summary: `input "${clip(boardKey, 100)}" does not map to a known pollable board; escalating to a human with full context`, value: null };
+        const resolved = resolveBoard(task.input);
+        if (!resolved.board) {
+          return { summary: `no board match for ${resolved.misses.map((m) => `"${clip(m, 40)}"`).join(', ')} after exact, alias, and fuzzy matching; escalating to a human with full context`, value: null, misses: resolved.misses };
         }
-        const plan = `Plan: fetch ${board.atsType}/${board.boardToken}, dedupe, hard_filter (${(profile.hardFilters || []).length} rules), rank vs targets [${(profile.goals?.targetTitles || []).join('; ')}], fit_score top ${top}, research, render_resume, draft_note+dm, review, compose_brief, deliver.`;
+        const board = resolved.board;
+        const plan = `Board: ${resolved.note}. Plan: fetch ${board.atsType}/${board.boardToken}, dedupe, hard_filter (${(profile.hardFilters || []).length} rules), rank vs targets [${(profile.goals?.targetTitles || []).join('; ')}], fit_score top ${top}, research, render_resume, draft_note+dm, review, compose_brief, deliver.`;
         return { summary: plan, value: board };
       });
     const planSeq = planRes.seq;
     if (!planRes.value) {
-      await store.setTaskStatus({ taskId: task._id, status: 'escalated', escalation: { reason: 'unparseable_input', context: `Task input "${task.input}" is not a known board key. Known boards: see agents/boards.js. A human should route this or add the board.` } });
-      await store.finishRun({ runId, success: false, error: 'unparseable_input' });
-      return { runId, taskStatus: 'escalated', summary: `escalated: input "${clip(boardKey, 80)}" is not a known board` };
+      const missNames = extractCompanyCandidates(task.input).join(', ') || String(task.input);
+      const friendly = [
+        `We could not find a live job board for: ${missNames}.`,
+        `We watch ${Object.keys(BOARDS).length} company boards right now (${Object.values(BOARDS).slice(0, 6).map((b) => b.name).join(', ')} and more).`,
+        `A human teammate has been notified and will either add the board or suggest close alternatives. Nothing was lost; your request is queued with full context.`,
+      ].join(' ');
+      await store.setTaskStatus({ taskId: task._id, status: 'escalated', escalation: { reason: 'unmapped_company', context: friendly } });
+      await store.finishRun({ runId, success: false, error: 'unmapped_company' });
+      return { runId, taskStatus: 'escalated', summary: `escalated: no board match for "${clip(boardKey, 80)}"` };
     }
     const boardInfo = planRes.value;
     const companyId = await store.upsertCompany({ name: boardInfo.name, atsType: boardInfo.atsType, boardToken: boardInfo.boardToken, pollable: true });
@@ -175,12 +205,18 @@ export async function runIntake(ctx) {
     });
     const uniqueJobs = dedupeRes.value;
 
-    // 4. hard_filter: auto-reject writes reason and STOPS that job; never counts as completed
+    // 4. hard_filter: auto-reject writes reason and STOPS that job; never counts as completed.
+    // Jobs already assessed for this user are excluded up front so the same posting
+    // never double counts across runs.
     const hfRes = await tr.step('pipeline', 'hard_filter',
       `${uniqueJobs.length} jobs vs ${(profile.hardFilters || []).length} hard rules + target ranking`,
       async () => {
+        let seenUrls = new Set();
+        try { seenUrls = new Set(await store.assessedUrlsForUser(userId)); } catch { /* first run or older store */ }
+        const fresh = uniqueJobs.filter((j) => !seenUrls.has(j.canonicalUrl));
+        const alreadyAssessed = uniqueJobs.length - fresh.length;
         const survivors = []; const rejected = [];
-        for (const j of uniqueJobs) {
+        for (const j of fresh) {
           const verdict = applyHardFilters(j, profile.hardFilters);
           if (verdict.rejected) rejected.push({ job: j, reason: verdict.reason });
           else survivors.push(j);
@@ -201,18 +237,47 @@ export async function runIntake(ctx) {
         survivors.sort((a, b) => titleRelevance(b.title, profile.goals?.targetTitles) - titleRelevance(a.title, profile.goals?.targetTitles));
         const topPicks = survivors.slice(0, top);
         return {
-          summary: `${rejected.length} auto-rejected with logged reasons (${rejected.slice(0, 2).map((r) => clip(r.reason, 60)).join(' | ') || 'none'}); ${survivors.length} survivors; top pick: ${topPicks.map((j) => j.title).join(' | ') || 'NONE'}`,
-          value: { topPicks, rejectedCount: rejected.length, survivorCount: survivors.length },
+          summary: `${alreadyAssessed} already assessed for this user (skipped); ${rejected.length} auto-rejected with logged reasons (${rejected.slice(0, 2).map((r) => clip(r.reason, 60)).join(' | ') || 'none'}); ${survivors.length} survivors; top pick: ${topPicks.map((j) => j.title).join(' | ') || 'NONE'}`,
+          value: { topPicks, rejectedCount: rejected.length, survivorCount: survivors.length, alreadyAssessed },
         };
       });
     const { topPicks } = hfRes.value;
     if (topPicks.length === 0) {
-      await store.setTaskStatus({ taskId: task._id, status: 'escalated', escalation: { reason: 'no_survivors', context: `All ${uniqueJobs.length} jobs on ${boardKey} were filtered out. Auto-rejects do not count as completed work.` } });
+      const assessedNote = hfRes.value.alreadyAssessed > 0 ? ` ${hfRes.value.alreadyAssessed} were already assessed for this user in earlier runs (no double counting).` : '';
+      await store.setTaskStatus({ taskId: task._id, status: 'escalated', escalation: { reason: 'no_survivors', context: `All ${uniqueJobs.length} jobs on ${boardInfo.key} were filtered out.${assessedNote} Auto-rejects do not count as completed work.` } });
       await store.finishRun({ runId, finishedAt: Date.now(), ...tr.totals, success: false, error: 'no_survivors' });
-      return { runId, taskStatus: 'escalated', summary: 'no survivors after hard filters' };
+      return { runId, taskStatus: 'escalated', summary: 'no fresh survivors after hard filters' };
     }
 
-    const renderResume = await loadRenderer();
+    const renderer = await loadRenderer();
+
+    // trust graduation: kinds with a clean approval streak at threshold skip the tap
+    // queue; their artifacts ship tagged auto_approved_graduated. Any edit, skip, or
+    // thumbs down resets the streak (computed from feedback rows, revocable).
+    let graduatedKinds = new Set();
+    let trustThreshold = null;
+    try {
+      const trust = await store.trustStatus(userId);
+      trustThreshold = trust?.threshold ?? null;
+      graduatedKinds = new Set((trust?.kinds || []).filter((k) => k.graduated).map((k) => k.kind));
+    } catch { /* trust status unavailable: everything stays behind the tap */ }
+    const ACTION_KIND = { fit_report: 'fit_score', resume_pdf: 'resume_variant', connection_note: 'connection_note', dm_draft: 'dm_draft', delivery_brief: 'brief_delivery' };
+    const finalizeWithTrust = async (artifact) => {
+      const actionKind = ACTION_KIND[artifact.kind];
+      const graduated = actionKind && graduatedKinds.has(actionKind);
+      if (graduated) {
+        artifact = {
+          ...artifact,
+          gateResults: [...(artifact.gateResults || []), { gate: 'auto_approved_graduated', pass: true, note: `${actionKind} earned a clean approval streak of ${trustThreshold}; shipping without the tap (revocable)` }],
+        };
+      }
+      const fin = await finalizeArtifact(store, artifact);
+      if (graduated && artifact.kind !== 'delivery_brief') {
+        // skip the tap queue: mark it delivered on the user's own brief-link surface
+        await store.markArtifactDelivered({ artifactId: fin.id, via: 'link' }).catch(() => {});
+      }
+      return fin;
+    };
     const jobSections = [];
 
     for (const pick of topPicks) {
@@ -253,7 +318,7 @@ export async function runIntake(ctx) {
         hardFilterResult: { rejected: false },
       });
 
-      const fitArtifact = await finalizeArtifact(store, {
+      const fitArtifact = await finalizeWithTrust({
         runId, taskId: task._id, userId, kind: 'fit_report',
         content: `# Fit report: ${pick.title} at ${boardInfo.name}\n\nScore: ${fit.score}/100\n\nCaveats:\n${fit.caveats.map((c) => `- ${c}`).join('\n')}\n\nEvidence:\n${fit.evidence.map((e) => `- JD: "${e.jdLine}"\n  Resume: "${e.resumeLine}"`).join('\n')}\n\nJob: ${pick.canonicalUrl}`,
         sourceUrls: [pick.canonicalUrl],
@@ -271,34 +336,48 @@ export async function runIntake(ctx) {
         sourceUrls: research.sources.map((s) => s.url).filter(Boolean),
       });
 
-      // 7. render_resume (parsers lane renderer if present, else explicit stub)
+      // 7. render_resume: real renderer, HTML on the hot path. The PDF renders in the
+      // background right after (Chrome print-to-pdf has timed out before; it never
+      // blocks the task again).
       const resumeRes = await tr.step('pipeline', 'render_resume', `variant for ${pick.title}`, async () => {
-        if (renderResume) {
-          const out = await renderResume({ profile, resumeText, job: jobWithDesc });
+        if (renderer?.renderResume) {
+          const out = await renderer.renderResume({ profile, resumeText, job: jobWithDesc });
           const gates = Array.isArray(out.gateResults) ? out.gateResults : undefined;
           const gateNote = gates ? `; gates ${gates.filter((g) => g.pass).length}/${gates.length} pass` : '';
+          const html = out.html || null;
           return {
-            summary: `rendered variant ${out.variantId || ''} -> ${out.path || out.file || 'inline'}${gateNote}`,
-            value: { content: out.path || out.content || JSON.stringify(out), variantId: out.variantId, gateResults: gates },
+            summary: `rendered variant ${out.variantId || ''} ${html ? `(inline HTML, ${html.length} chars; PDF rendering async)` : `-> ${out.path || out.file || 'inline'}`}${gateNote}`,
+            value: { content: out.content || out.path || out.file || '', variantId: out.variantId, gateResults: gates, html, htmlPath: out.htmlPath || null, pdfPath: out.pdfPath || null },
           };
         }
-        const variantId = `stub-${boardInfo.key}-${pick.externalId}`;
+        const variantId = `novariant-${boardInfo.key}-${pick.externalId}`;
         return {
-          summary: `STUB: parsers/render.js not present yet; emitted placeholder variant ${variantId}`,
-          value: { content: `STUB resume variant ${variantId}: parsers lane renderer not available at run time. Tailor summary toward: ${pick.title} at ${boardInfo.name}.`, variantId },
+          summary: `resume renderer unavailable at run time; no variant rendered for ${variantId}, nothing invented`,
+          value: { content: `No tailored resume variant was rendered for this run (renderer unavailable). Target was: ${pick.title} at ${boardInfo.name}. Nothing was invented.`, variantId, html: null, htmlPath: null, pdfPath: null },
         };
       });
-      const resumeArtifact = await finalizeArtifact(store, {
+      const resumeArtifact = await finalizeWithTrust({
         runId, taskId: task._id, userId, kind: 'resume_pdf',
         content: resumeRes.value.content, variantId: resumeRes.value.variantId,
         ...(resumeRes.value.gateResults ? { gateResults: resumeRes.value.gateResults } : {}),
       });
+      // fire-and-forget PDF: on-request artifact, never in the hot path
+      if (renderer?.renderPdf && resumeRes.value.htmlPath && resumeRes.value.pdfPath) {
+        const { htmlPath, pdfPath, variantId } = resumeRes.value;
+        renderer.renderPdf({ htmlPath, pdfPath })
+          .then(() => log(`background PDF landed: ${pdfPath}`))
+          .catch((e) => log(`background PDF failed for ${variantId}: ${clip(e.message, 120)}`));
+      }
+
+      // learned preference rules (from edits and thumbs-down feedback) steer every draft
+      const prefRules = (profile.preferenceRules || []).filter(Boolean);
+      const prefBlock = prefRules.length ? `\nUser preference rules learned from their feedback (follow every one):\n${prefRules.map((p) => `- ${p}`).join('\n')}` : '';
 
       // 8a. draft_note (connection request, HARD 300 char cap enforced in code)
-      const noteRes = await tr.step('drafter', 'draft_note', `connection note for ${pick.title}`, async () => {
+      const noteRes = await tr.step('drafter', 'draft_note', `connection note for ${pick.title}${prefRules.length ? ` (+${prefRules.length} preference rules)` : ''}`, async () => {
         const r = await chat({
           model: MODEL_DEFAULT, maxTokens: 250, temperature: 0.6,
-          system: `You draft LinkedIn connection request notes. STRICT max ${NOTE_CHAR_CAP} characters. Warm, specific, no flattery, no em dashes, no invented facts about the candidate. Mention one concrete company fact from the research. If candidate details are sparse, use the placeholder [your name] and keep claims generic; never refuse. Output the note text only.`,
+          system: `You draft LinkedIn connection request notes. STRICT max ${NOTE_CHAR_CAP} characters. Warm, specific, no flattery, no em dashes, no invented facts about the candidate. Mention one concrete company fact from the research. If candidate details are sparse, use the placeholder [your name] and keep claims generic; never refuse. Output the note text only.${prefBlock}`,
           user: `Candidate: ${profile.name || 'the candidate'}, ${profile.headline || ''}.\nTarget: someone at ${boardInfo.name} related to the ${pick.title} opening.\nCompany research: ${clip(research.answer, 800)}`,
         });
         let note = r.text.trim().replace(/^"|"$/g, '');
@@ -315,7 +394,7 @@ export async function runIntake(ctx) {
       const dmRes = await tr.step('drafter', 'dm_draft', `DM draft for ${pick.title}`, async () => {
         const r = await chatJson({
           model: MODEL_DEFAULT, maxTokens: 500, temperature: 0.6,
-          system: 'You draft a short direct message written BY the candidate TO a hiring contact at the company (first person, candidate voice; never a message addressed to the candidate). Respond ONLY with JSON {"subject": "...", "body": "..."}. Subject under 60 chars and enticing without clickbait. Body under 120 words, specific, references one real company fact from the research, no em dashes, no invented candidate facts. Address the recipient generically (e.g. Hi there) since their name is unknown. If candidate details are sparse, keep claims generic; never refuse.',
+          system: `You draft a short direct message written BY the candidate TO a hiring contact at the company (first person, candidate voice; never a message addressed to the candidate). Respond ONLY with JSON {"subject": "...", "body": "..."}. Subject under 60 chars and enticing without clickbait. Body under 120 words, specific, references one real company fact from the research, no em dashes, no invented candidate facts. Address the recipient generically (e.g. Hi there) since their name is unknown. If candidate details are sparse, keep claims generic; never refuse.${prefBlock}`,
           user: `Candidate: ${profile.name || 'the candidate'}, ${profile.headline || ''}.\nRole: ${pick.title} at ${boardInfo.name}.\nResearch: ${clip(research.answer, 800)}\nFit evidence: ${fit.evidence.map((e) => e.resumeLine).join(' | ')}`,
         });
         const dm = r.value;
@@ -380,12 +459,12 @@ export async function runIntake(ctx) {
         });
       }
 
-      const noteArtifact = await finalizeArtifact(store, {
+      const noteArtifact = await finalizeWithTrust({
         runId, taskId: task._id, userId, kind: 'connection_note',
         content: noteText,
         gateResults: [{ gate: `note_le_${NOTE_CHAR_CAP}_chars`, pass: noteText.length <= NOTE_CHAR_CAP, note: `${noteText.length} chars` }],
       });
-      const dmArtifact = await finalizeArtifact(store, {
+      const dmArtifact = await finalizeWithTrust({
         runId, taskId: task._id, userId, kind: 'dm_draft',
         content: `Subject: ${dm.subject}\n\n${dm.body}`,
       });
@@ -408,7 +487,8 @@ export async function runIntake(ctx) {
         let deliveredVia = 'link';
         let detail = '';
         if (user.telegramChatId && ctx.opts?.deliver !== false) {
-          await sendBrief(user.telegramChatId, lint.text);
+          // chat surface gets a pointer instead of raw resume HTML; the stored brief keeps the full embed
+          await sendBrief(user.telegramChatId, stripResumeHtmlForChat(lint.text));
           deliveredVia = 'telegram';
           detail = 'sent to bound chat';
         }
@@ -439,6 +519,18 @@ export async function runIntake(ctx) {
   }
 }
 
+// Delimiters around the embedded resume HTML so surfaces can render or strip it
+// (web renders it as a document; Telegram gets a pointer instead of raw HTML).
+export const RESUME_HTML_OPEN = '<!--resume-html-->';
+export const RESUME_HTML_CLOSE = '<!--/resume-html-->';
+
+function stripResumeHtmlForChat(text) {
+  return String(text).replace(
+    new RegExp(`${RESUME_HTML_OPEN}[\\s\\S]*?${RESUME_HTML_CLOSE}`, 'g'),
+    '(Tailored resume rendered; open your brief link on the web to view it.)',
+  );
+}
+
 function composeBriefMd({ profile, boardInfo, jobSections, totals }) {
   const lines = [];
   lines.push(`# Delivery brief: ${boardInfo.name}`);
@@ -462,7 +554,14 @@ function composeBriefMd({ profile, boardInfo, jobSections, totals }) {
     for (const src of s.research.sources.slice(0, 6)) lines.push(`- ${src.url}`);
     lines.push('');
     lines.push(`### Resume variant`);
-    lines.push(s.resume.variantId ? `Variant ${s.resume.variantId}` : 'See attached');
+    if (s.resume.html) {
+      lines.push(`Variant ${s.resume.variantId}, tailored to this JD and rendered below. A print-ready PDF is generated on request.`);
+      lines.push(RESUME_HTML_OPEN);
+      lines.push(s.resume.html);
+      lines.push(RESUME_HTML_CLOSE);
+    } else {
+      lines.push(s.resume.variantId ? `Variant ${s.resume.variantId}` : clip(s.resume.content || 'No variant rendered for this run.', 300));
+    }
     lines.push('');
     lines.push(`### Connection note (ready to paste, ${s.noteText.length}/300 chars)`);
     lines.push('```');

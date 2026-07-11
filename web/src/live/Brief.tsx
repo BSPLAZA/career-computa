@@ -18,7 +18,7 @@ export default function LiveBrief({ artifactId }: { artifactId: string }) {
       {brief === undefined && <div className="panel empty">Loading brief...</div>}
       {brief === null && (
         <div className="panel empty">
-          No brief found at this link. Check the address, or ask your agency for a fresh link.
+          No brief found at this link. Check the address, or ask Career Computa for a fresh link.
         </div>
       )}
       {brief && (
@@ -33,7 +33,23 @@ export default function LiveBrief({ artifactId }: { artifactId: string }) {
               </span>
             ))}
           </div>
-          <div className="draft-body" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{brief.content}</div>
+          {(() => {
+            const m = brief.content.match(/<!--resume-html-->([\s\S]*?)<!--\/resume-html-->/);
+            if (!m) {
+              return <div className="draft-body" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{brief.content}</div>;
+            }
+            const before = brief.content.slice(0, m.index);
+            const after = brief.content.slice((m.index ?? 0) + m[0].length);
+            return (
+              <>
+                <div className="draft-body" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{before}</div>
+                <div className="resume-embed" style={{ margin: '12px 0', border: '1px solid var(--line, #2a2a2a)', borderRadius: 8, overflow: 'hidden' }}>
+                  <iframe title="Tailored resume" srcDoc={m[1]} style={{ width: '100%', height: 640, border: 0, background: '#fff' }} sandbox="" />
+                </div>
+                <div className="draft-body" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>{after}</div>
+              </>
+            );
+          })()}
           {brief.sourceUrls.length > 0 && (
             <div className="src-urls" style={{ marginTop: 12 }}>
               <span className="muted">Every company claim above is sourced:</span>

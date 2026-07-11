@@ -1,4 +1,5 @@
 import { useStore } from '../store';
+import { LIVE } from '../convex';
 import { fmtUsd, isToday } from '../util';
 import type { AgentRole } from '../types';
 
@@ -30,7 +31,14 @@ export default function Roster() {
   return (
     <div>
       <h2>Roster</h2>
-      <p className="sub">The agency staff. Pause any agent or set its daily quota; the manager routes around paused staff.</p>
+      <p className="sub">The Career Computa staff: what each agent does. Real per-agent numbers live on the Runs tab (Agent spend today).</p>
+
+      {LIVE && (
+        <div className="sample-banner">
+          SAMPLE DATA: the stats and controls on these cards are illustrative, not live. Pause and quota are not wired to the
+          worker yet, so they are disabled here. For real per-agent numbers use the Runs tab; every figure there comes from the live trace.
+        </div>
+      )}
 
       <div className="roster-grid">
         {state.agentConfigs.map(cfg => {
@@ -41,22 +49,26 @@ export default function Roster() {
                 <span className="agent-name">{cfg.role}</span>
                 <button
                   className={cfg.paused ? 'primary small' : 'danger small'}
+                  disabled={LIVE}
+                  title={LIVE ? 'Not wired to the live worker yet' : ''}
                   onClick={() => dispatch({ type: 'agentConfig', role: cfg.role, patch: { paused: !cfg.paused } })}
                 >
                   {cfg.paused ? 'Resume' : 'Pause'}
                 </button>
               </div>
               <p className="muted" style={{ fontSize: 12, marginBottom: 10 }}>{DESCRIPTIONS[cfg.role]}</p>
-              <div className="stat-line"><span>steps today</span><b>{s.steps}</b></div>
-              <div className="stat-line"><span>spend today</span><b>{fmtUsd(s.cost)}</b></div>
-              <div className="stat-line"><span>revisions</span><b>{s.revised}</b></div>
-              <div className="stat-line"><span>errors</span><b>{s.errors}</b></div>
+              <div className="stat-line"><span>steps today{LIVE ? ' (sample)' : ''}</span><b>{s.steps}</b></div>
+              <div className="stat-line"><span>spend today{LIVE ? ' (sample)' : ''}</span><b>{fmtUsd(s.cost)}</b></div>
+              <div className="stat-line"><span>revisions{LIVE ? ' (sample)' : ''}</span><b>{s.revised}</b></div>
+              <div className="stat-line"><span>errors{LIVE ? ' (sample)' : ''}</span><b>{s.errors}</b></div>
               <div className="quota-row">
                 <label className="muted" style={{ fontSize: 12 }}>daily quota</label>
                 <input
                   type="number"
                   min={0}
                   value={cfg.dailyQuota}
+                  disabled={LIVE}
+                  title={LIVE ? 'Not wired to the live worker yet' : ''}
                   onChange={e => dispatch({ type: 'agentConfig', role: cfg.role, patch: { dailyQuota: Number(e.target.value) || 0 } })}
                 />
               </div>
@@ -67,8 +79,8 @@ export default function Roster() {
       </div>
 
       <div className="note-stub">
-        Display-only for now: pause and quota write local config rows. The frozen contract has no agent-config table yet,
-        so the worker does not read these until the brain adds one and the Convex lane wires it. Reported upstream.
+        Why disabled: the frozen contract has no agent-config table yet, so the worker cannot read pause or quota.
+        The moment real trust streaks land in the backend these cards switch to live data. Reported upstream.
       </div>
     </div>
   );

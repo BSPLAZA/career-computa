@@ -2,20 +2,30 @@
 // the repo-root .convex-url existed at build time. Gaps against the spec are
 // marked LIVE GAP in comments and reported to the brain:
 //   1. RESOLVED: ledger rows now carry runId, VERIFY opens the trace in one click
-//   2. no list-users query, so the Pipeline selector takes a pasted userId
-//   3. no list-runs / artifacts-for-run query, so Runs needs a pasted runId
-//   4. digestQueue returns a 280 char preview, not full content
-import { useEffect, useState, type ReactNode } from 'react';
+//   2. no list-users query, so the Pipeline selector auto-loads the local user
+//      and account switching takes a pasted id
+//   3. RESOLVED: Runs derives a recent-run picker from public.ledger runIds
+//      and auto-opens the newest run; no pasted runId needed
+//   4. digestQueue returns a 280 char preview, not full content; capped
+//      blocks are labeled wherever copy is offered
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useQuery, useMutation } from 'convex/react';
-import { api, getMyUserId, setMyUserId, clearMyUserId } from '../convex';
+import { api, convexClient, getMyUserId, setMyUserId, clearMyUserId } from '../convex';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { useStore } from '../store';
-import { fmtTime, fmtDateTime, fmtUsd, fmtMs, truncate } from '../util';
+import { fmtTime, fmtDateTime, fmtUsd, fmtMs, truncate, isToday } from '../util';
+import OnboardVoice from '../onboard/Onboard';
 
 const BOT_LINK_HELP = 'Open the link, hit Start, briefs arrive in that chat.';
 
 // ---------- Onboard ----------
+// Voice-first rebuild lives in src/onboard/Onboard.tsx (onboard lane).
+// LegacyLiveOnboard below is the pre-voice version, kept for one-line rollback.
 export function LiveOnboard() {
+  return <OnboardVoice />;
+}
+
+export function LegacyLiveOnboard() {
   const { state, dispatch } = useStore();
   const [email, setEmail] = useState('');
   const [result, setResult] = useState<{ userId: string; telegramDeepLink: string } | null>(null);
@@ -65,7 +75,7 @@ export function LiveOnboard() {
   return (
     <div>
       <h2>Onboard</h2>
-      <p className="sub">Sign up, connect Telegram for briefs, hand over your career context. The agency does the rest.</p>
+      <p className="sub">Sign up, connect Telegram for briefs, hand over your career context. Career Computa does the rest.</p>
       <div className="onboard-grid">
         <section className="panel">
           <h3>1. Sign up</h3>
@@ -75,7 +85,7 @@ export function LiveOnboard() {
                 <label>Email</label>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
               </div>
-              <button className="primary" type="submit">Create my agency</button>
+              <button className="primary" type="submit">Start my Career Computa</button>
             </form>
           ) : (
             <>
@@ -96,7 +106,7 @@ export function LiveOnboard() {
         </section>
 
         <section className="panel">
-          <h3>2. Upload your context</h3>
+          <h3>2. Upload your context <span className="badge b-info" title="Nothing is invented from thin air; parsed facts wait for your confirmation before use.">we parse what you drop, you confirm everything</span></h3>
           <div
             className={`dropzone ${dragOver ? 'hover' : ''}`}
             onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -155,7 +165,10 @@ const TAPPABLE = new Set(['connection_note', 'dm_draft', 'delivery_brief']);
 
 export function LiveQueue() {
   const { state } = useStore();
-  const rows = useQuery(api.public.digestQueue, {});
+  // digestQueue is tenant-scoped: drafts belong to their owner, so the queue
+  // shows the signed-in user's drafts only.
+  const myIdForQueue = getMyUserId();
+  const rows = useQuery(api.public.digestQueue, myIdForQueue ? { userId: myIdForQueue as Id<'users'> } : 'skip');
   const recordFeedback = useMutation(api.feedback.recordFeedback);
   const [editing, setEditing] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
@@ -164,6 +177,19 @@ export function LiveQueue() {
   const [decided, setDecided] = useState<Set<string>>(new Set());
 
   const pending = (rows ?? []).filter(r => TAPPABLE.has(r.kind) && !decided.has(r.artifactId));
+  const myId = getMyUserId();
+
+  // Company and role headers: sibling fit_report on the same task carries
+  // "# Fit report: <role> at <company>" in its preview.
+  const headerByTask = new Map<string, string>();
+  for (const r of rows ?? []) {
+    if (r.kind !== 'fit_report') continue;
+    const m = r.preview.match(/^# Fit report: (.+)$/m);
+    if (!m) continue;
+    const line = m[1].trim();
+    const at = line.lastIndexOf(' at ');
+    headerByTask.set(r.taskId, at > 0 ? `${line.slice(at + 4).trim()}: ${line.slice(0, at).trim()}` : line);
+  }
 
   async function verdict(r: NonNullable<typeof rows>[number], v: 'approve' | 'edit' | 'skip', reason?: string, editDiff?: string) {
     await recordFeedback({
@@ -181,19 +207,21 @@ export function LiveQueue() {
     <div>
       <h2>Queue</h2>
       <p className="sub">Drafts awaiting your tap. Approving unlocks send; nothing leaves without it. Edits and skips become preference rules.</p>
-      {rows === undefined && <div className="panel empty">Loading queue...</div>}
-      {rows !== undefined && pending.length === 0 && <div className="panel empty">Queue is clear. New drafts land here as agents finish.</div>}
+      {!myIdForQueue && <div className="panel empty">Your drafts are private to your account. Sign up on the Onboard tab and they appear here.</div>}
+      {myIdForQueue && rows === undefined && <div className="panel empty">Loading queue...</div>}
+      {myIdForQueue && rows !== undefined && pending.length === 0 && <div className="panel empty">Queue is clear. New drafts land here as agents finish.</div>}
       {pending.map(r => {
         const isNote = r.kind === 'connection_note' || r.kind === 'dm_draft';
+        const header = headerByTask.get(r.taskId);
         return (
           <div className="queue-card" key={r.artifactId}>
             <div className="queue-head">
+              {header && <b style={{ fontSize: 14 }}>{header}</b>}
               <span className="badge b-purple">{r.kind.replace(/_/g, ' ')}</span>
-              <span className="mono muted">{r.artifactId.slice(0, 10)}...</span>
               {isNote && <span className="charcount">{r.preview.length >= 280 ? '280+ (preview cap)' : `${r.preview.length}/300`} chars</span>}
               <span className="muted mono" style={{ marginLeft: 'auto' }}>run {r.runId.slice(0, 10)}...</span>
             </div>
-            {state.demoMode && isNote ? (
+            {state.demoMode && isNote && r.userId !== myId ? (
               <div className="draft-body muted">[message body hidden in demo mode]</div>
             ) : editing === r.artifactId ? (
               <textarea className="draft-body" style={{ width: '100%', minHeight: 110 }} value={editText} onChange={e => setEditText(e.target.value)} />
@@ -254,10 +282,18 @@ export function LiveLedger() {
       <h2>Ledger</h2>
       <p className="sub">Public work log. One row per task, every claim verifiable. Judge counters exclude team accounts.</p>
       <div className="counters">
-        <div className="counter hero">
-          <div className="num">{counters ? counters.tasksCompletedToday.judge : '...'}</div>
-          <div className="lbl">tasks completed today (outsiders only{counters ? `, ${counters.tasksCompletedToday.total} incl team` : ''})</div>
-        </div>
+        {/* Zero-state leads with total completed so the hero never opens on a bare 0. */}
+        {counters && counters.tasksCompletedToday.judge === 0 ? (
+          <div className="counter hero">
+            <div className="num">{counters.tasksCompletedTotal.total}</div>
+            <div className="lbl">tasks completed, all accounts ({counters.tasksCompletedToday.total} today; outsider count starts at first judge signup)</div>
+          </div>
+        ) : (
+          <div className="counter hero">
+            <div className="num">{counters ? counters.tasksCompletedToday.judge : '...'}</div>
+            <div className="lbl">tasks completed today (outsiders only{counters ? `, ${counters.tasksCompletedToday.total} incl team` : ''})</div>
+          </div>
+        )}
         <div className="counter">
           <div className="num">{counters ? counters.signupsWithFirstUse.judge : '...'}</div>
           <div className="lbl">signups with first use</div>
@@ -339,12 +375,12 @@ export function LivePipeline() {
   return (
     <div>
       <h2>Pipeline</h2>
-      <p className="sub">Every job the agency has touched for a user, by state. Auto-rejects keep their reason.</p>
+      <p className="sub">Every job Career Computa has touched for you, by state. Auto-rejects keep their reason. Your board loads automatically after signup.</p>
       <div className="filters">
-        {/* LIVE GAP: no list-users query, so the selector takes a user id (yours is prefilled after signup) */}
-        <label className="muted">User id</label>
-        <input value={userIdInput} onChange={e => setUserIdInput(e.target.value)} placeholder="paste a userId" style={{ minWidth: 280 }} className="mono" />
-        <button className="small" onClick={() => setActiveUserId(userIdInput.trim() || null)}>Load</button>
+        {/* No list-users query yet, so switching accounts still takes an id; your own board needs no typing. */}
+        <label className="muted">Viewing{activeUserId && activeUserId === getMyUserId() ? ' your board' : ''}</label>
+        <input value={userIdInput} onChange={e => setUserIdInput(e.target.value)} placeholder="auto-filled after signup" style={{ minWidth: 280 }} className="mono" />
+        <button className="small" onClick={() => setActiveUserId(userIdInput.trim() || null)}>Switch</button>
       </div>
       <div className="counters">
         <div className="counter"><div className="num">{all.length}</div><div className="lbl">total discovered</div></div>
@@ -352,7 +388,7 @@ export function LivePipeline() {
         <div className="counter hero"><div className="num">{count('delivered') + count('applied') + count('screening') + count('interviewing')}</div><div className="lbl">delivered or further</div></div>
         <div className="counter"><div className="num">{count('interviewing')}</div><div className="lbl">interviewing</div></div>
       </div>
-      {!activeUserId && <div className="panel empty">Sign up on the Onboard tab or paste a user id to load a board.</div>}
+      {!activeUserId && <div className="panel empty">Sign up on the Onboard tab and your board loads here by itself.</div>}
       {activeUserId && board === undefined && <div className="panel empty">Loading board...</div>}
       {board && (
         <div className="board">
@@ -387,29 +423,85 @@ const ROLE_COLORS: Record<string, string> = {
   drafter: '#a78bfa', pipeline: '#e5654f', reviewer: '#6fd6e0',
 };
 
+type AgentSpend = { role: string; cost: number; steps: number; tokens: number };
+
 export function LiveRuns() {
   const { state } = useStore();
   const focusRun = state.runsFocus?.runId;
-  const [runIdInput, setRunIdInput] = useState(focusRun ?? '');
   const [activeRunId, setActiveRunId] = useState<string | null>(focusRun ?? null);
   const [roleFilter, setRoleFilter] = useState('all');
   const trace = useQuery(api.runs.traceTree, activeRunId ? { runId: activeRunId as Id<'runs'> } : 'skip');
+  const ledgerRows = useQuery(api.public.ledger, { limit: 100 });
 
   // Ledger VERIFY navigates here with a runId; open its trace directly.
   useEffect(() => {
     if (focusRun && focusRun !== activeRunId) {
-      setRunIdInput(focusRun);
       setActiveRunId(focusRun);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusRun]);
+
+  // Zero-typing default: with no focus and no pick, open the newest run.
+  const recentRuns = useMemo(() => {
+    const seen = new Set<string>();
+    const out: { runId: string; taskId: string; kind: string; status: string; maskedEmail: string; costUsd: number; createdAt: number }[] = [];
+    for (const r of ledgerRows ?? []) {
+      if (!r.runId || seen.has(r.runId)) continue;
+      seen.add(r.runId);
+      out.push({ runId: r.runId, taskId: r.taskId, kind: r.kind, status: r.status, maskedEmail: r.maskedEmail, costUsd: r.costUsd, createdAt: r.createdAt });
+    }
+    return out.slice(0, 10);
+  }, [ledgerRows]);
+
+  useEffect(() => {
+    if (!activeRunId && !focusRun && recentRuns.length > 0) setActiveRunId(recentRuns[0].runId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recentRuns]);
+
+  // Per-agent cost rollup over today's runs: answers "which agent spent the
+  // most today" straight from the tool. Built client-side from traceTree
+  // because there is no server rollup query yet.
+  const [spend, setSpend] = useState<AgentSpend[] | null>(null);
+  const [spendBusy, setSpendBusy] = useState(false);
+  const todayRunKey = useMemo(
+    () => (ledgerRows ?? []).filter(r => isToday(r.createdAt)).flatMap(r => r.runIds).join('|'),
+    [ledgerRows],
+  );
+  useEffect(() => {
+    if (!convexClient || ledgerRows === undefined) return;
+    const runIds = [...new Set((ledgerRows ?? []).filter(r => isToday(r.createdAt)).flatMap(r => r.runIds))].slice(0, 80);
+    let cancelled = false;
+    setSpendBusy(true);
+    (async () => {
+      const agg = new Map<string, AgentSpend>();
+      for (let i = 0; i < runIds.length; i += 8) {
+        await Promise.all(runIds.slice(i, i + 8).map(async id => {
+          try {
+            const t = await convexClient!.query(api.runs.traceTree, { runId: id as Id<'runs'> });
+            for (const s of t.steps) {
+              const a = agg.get(s.agentRole) ?? { role: s.agentRole, cost: 0, steps: 0, tokens: 0 };
+              a.cost += s.costUsd; a.steps += 1; a.tokens += s.tokensIn + s.tokensOut;
+              agg.set(s.agentRole, a);
+            }
+          } catch { /* run gone or racing; skip it */ }
+        }));
+        if (cancelled) return;
+      }
+      if (!cancelled) {
+        setSpend([...agg.values()].sort((x, y) => y.cost - x.cost));
+        setSpendBusy(false);
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todayRunKey]);
 
   const focusTask = state.runsFocus?.taskId;
 
   return (
     <div>
       <h2>Runs</h2>
-      <p className="sub">The trace IS the product proof. Paste a run id to open its full step tree.</p>
+      <p className="sub">The trace IS the product proof. VERIFY on any Ledger row lands here, or pick a recent run below. No ids to paste.</p>
       {focusTask && !focusRun && (
         <div className="note-stub" style={{ marginBottom: 14 }}>
           Verifying task <span className="mono">{focusTask}</span>. It has no run yet (still queued or escalated before a run started).
@@ -420,17 +512,55 @@ export function LiveRuns() {
           Verifying task <span className="mono">{focusTask}</span>: trace opened below.
         </div>
       )}
-      <div className="filters">
-        <label className="muted">Run id</label>
-        <input value={runIdInput} onChange={e => setRunIdInput(e.target.value)} placeholder="paste a runId" style={{ minWidth: 300 }} className="mono" />
-        <button className="small" onClick={() => setActiveRunId(runIdInput.trim() || null)}>Open trace</button>
-        <label className="muted">Agent</label>
+
+      <div className="panel" style={{ marginBottom: 14 }}>
+        <h3>Agent spend today {spendBusy && <span className="muted" style={{ fontWeight: 400 }}>(tallying...)</span>}</h3>
+        {spend && spend.length > 0 && (
+          <div className="tbl-wrap">
+            <table>
+              <thead>
+                <tr><th>Agent</th><th className="num-r">Steps</th><th className="num-r">Tokens</th><th className="num-r">Spend</th><th></th></tr>
+              </thead>
+              <tbody>
+                {spend.map((s, i) => (
+                  <tr key={s.role}>
+                    <td><span className="role-tag" style={{ background: `${ROLE_COLORS[s.role] ?? '#7d8ba1'}22`, color: ROLE_COLORS[s.role] ?? 'var(--muted)' }}>{s.role}</span></td>
+                    <td className="num-r">{s.steps}</td>
+                    <td className="num-r">{s.tokens.toLocaleString()}</td>
+                    <td className="num-r">{fmtUsd(s.cost)}</td>
+                    <td>{i === 0 && <span className="badge b-warn">top spender today</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {spend !== null && spend.length === 0 && !spendBusy && <div className="muted" style={{ fontSize: 12 }}>No steps recorded today yet.</div>}
+        {spend === null && !spendBusy && <div className="muted" style={{ fontSize: 12 }}>Waiting for ledger data...</div>}
+      </div>
+
+      <div className="filters" style={{ alignItems: 'flex-start' }}>
+        <label className="muted" style={{ paddingTop: 5 }}>Recent runs</label>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {recentRuns.map(r => (
+            <button
+              key={r.runId}
+              className={`small ${activeRunId === r.runId ? 'primary' : ''}`}
+              onClick={() => setActiveRunId(r.runId)}
+              title={`task ${r.taskId}`}
+            >
+              {fmtTime(r.createdAt)} {r.kind} {r.status} {fmtUsd(r.costUsd)}
+            </button>
+          ))}
+          {ledgerRows !== undefined && recentRuns.length === 0 && <span className="muted" style={{ fontSize: 12 }}>No runs yet.</span>}
+        </div>
+        <label className="muted" style={{ paddingTop: 5 }}>Agent</label>
         <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
           <option value="all">all agents</option>
           {Object.keys(ROLE_COLORS).map(r => <option key={r} value={r}>{r}</option>)}
         </select>
       </div>
-      {!activeRunId && <div className="panel empty">No run selected.</div>}
+      {!activeRunId && <div className="panel empty">No run selected yet. The newest run opens automatically once the ledger loads.</div>}
       {activeRunId && trace === undefined && <div className="panel empty">Loading trace...</div>}
       {trace && trace.run && (
         <div className="panel">

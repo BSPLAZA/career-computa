@@ -165,6 +165,20 @@ tr:hover td { background: #141b26; }
 .quota-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
 .quota-row input { width: 80px; font-family: var(--mono); }
 
+/* Honesty banner: sample data, loud on purpose */
+.sample-banner {
+  background: #35300f; color: var(--amber); border: 1px solid #6b5d1a; border-radius: 10px;
+  padding: 12px 16px; margin-bottom: 16px; font-size: 13px; font-weight: 600;
+}
+
+/* Toast for feedback and state moves */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--panel2); border: 1px solid var(--accent); color: var(--text);
+  border-radius: 10px; padding: 10px 18px; font-size: 13px; z-index: 50;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5); max-width: 90vw;
+}
+
 .filters { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
 .note-stub { font-size: 12px; color: var(--amber); background: #2b2410; border: 1px solid #4a3d14; border-radius: 6px; padding: 8px 10px; margin-top: 12px; }
 .empty { color: var(--muted); padding: 24px; text-align: center; }

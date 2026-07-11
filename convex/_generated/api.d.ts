@@ -15,6 +15,7 @@ import type * as jobs from "../jobs.js";
 import type * as public_ from "../public.js";
 import type * as runs from "../runs.js";
 import type * as tasks from "../tasks.js";
+import type * as trust from "../trust.js";
 import type * as userProfiles from "../userProfiles.js";
 import type * as users from "../users.js";
 
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   public: typeof public_;
   runs: typeof runs;
   tasks: typeof tasks;
+  trust: typeof trust;
   userProfiles: typeof userProfiles;
   users: typeof users;
 }>;

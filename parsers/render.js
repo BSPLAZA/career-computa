@@ -13,7 +13,9 @@
 
 const fs = require('fs');
 const path = require('path');
-const { renderResumeVariant, stripEmDashes } = require('./resume.js');
+const { execFile } = require('child_process');
+const os = require('os');
+const { renderResumeVariant, stripEmDashes, findChrome } = require('./resume.js');
 const { openRouterChat } = require('./docs.js');
 
 const REPO = path.resolve(__dirname, '..');
@@ -126,14 +128,47 @@ async function renderResume({ profile = {}, resumeText = '', job = {} }) {
   }
   const inventory = await condenseInventory(rawInventory);
   const jdText = job.descriptionText || job.descriptionHtml || job.title || '';
+  // Hot path renders HTML only: Chrome print-to-pdf has timed out before, so the PDF
+  // is generated async on request via renderPdf(). Task latency stays LLM-bound.
   const r = await renderResumeVariant({
     inventory,
     jdText,
     outDir: OUT_DIR,
     variantId,
-    options: profile.stylePrefs || {},
+    options: { ...(profile.stylePrefs || {}), htmlOnly: true },
   });
-  return { path: r.pdfPath, variantId: r.variantId, gateResults: r.gateResults, cutList: r.cutList };
+  return {
+    content: r.html,
+    html: r.html,
+    htmlPath: r.htmlPath,
+    pdfPath: r.expectedPdfPath,
+    variantId: r.variantId,
+    gateResults: r.gateResults,
+    cutList: r.cutList,
+  };
 }
 
-module.exports = { renderResume };
+// Async, non-blocking PDF render for the on-request path. Never used inside the
+// intake hot loop; callers fire it in the background and log the outcome.
+function renderPdf({ htmlPath, pdfPath }) {
+  return new Promise((resolve, reject) => {
+    const chrome = findChrome();
+    if (!chrome) return reject(new Error('No headless Chrome found for async PDF render'));
+    if (!fs.existsSync(htmlPath)) return reject(new Error('HTML source missing: ' + htmlPath));
+    const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-pdf-async-'));
+    execFile(chrome, [
+      '--headless', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
+      '--user-data-dir=' + profileDir,
+      '--no-pdf-header-footer',
+      '--print-to-pdf=' + pdfPath,
+      'file://' + htmlPath,
+    ], { timeout: 90000 }, (err) => {
+      fs.rmSync(profileDir, { recursive: true, force: true });
+      // System Chrome sometimes writes the PDF then hangs on exit; accept a landed artifact.
+      if (fs.existsSync(pdfPath) && fs.statSync(pdfPath).size > 1000) return resolve(pdfPath);
+      reject(err || new Error('PDF did not land at ' + pdfPath));
+    });
+  });
+}
+
+module.exports = { renderResume, renderPdf };

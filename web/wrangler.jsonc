@@ -1,9 +1,11 @@
 {
-  // Static-assets Worker serving the built dashboard.
+  // Dashboard Worker: /api/* routes in worker/api.ts, everything else served from built assets.
   "name": "career-agency-web",
+  "main": "./worker/api.ts",
   "compatibility_date": "2026-07-01",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   }
 }

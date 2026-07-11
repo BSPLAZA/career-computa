@@ -142,16 +142,17 @@ export const getBrief = query({
 });
 
 // Artifacts awaiting the human tap: drafted but not yet delivered.
+// Tenant-scoped: a userId is required to see anything. Without one the queue is
+// empty; drafts belong to their owner, never to a passer-by.
 export const digestQueue = query({
   args: { userId: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
-    const artifacts = args.userId
-      ? await ctx.db
-          .query("artifacts")
-          .withIndex("by_userId", (q) => q.eq("userId", args.userId!))
-          .order("desc")
-          .take(200)
-      : await ctx.db.query("artifacts").order("desc").take(200);
+    if (!args.userId) return [];
+    const artifacts = await ctx.db
+      .query("artifacts")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId!))
+      .order("desc")
+      .take(200);
     const pending = artifacts.filter((a) => a.deliveredAt === undefined);
     const rows = [];
     for (const a of pending) {

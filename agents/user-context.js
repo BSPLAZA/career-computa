@@ -1,5 +1,5 @@
 // user-context.js: loads user + profile + resume text for a task.
-// Convex path: users:getById and userProfiles:getByUserId (STUB CONTRACT, confirm with convex lane).
+// Convex path: users:getUser and userProfiles:getByUserId (both live on the deployment).
 // Local path: reads the local store tables; falls back to a minimal anonymous profile so the
 // pipeline still runs and the gaps show up honestly in caveats.
 import { existsSync, readFileSync } from 'node:fs';

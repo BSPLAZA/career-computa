@@ -24,7 +24,7 @@ const BULLET_CHARS_PER_LINE = 98;                    // bullets are indented
 
 function stripEmDashes(s) {
   return String(s)
-    .replace(/\s*—\s*/g, ', ')
+    .replace(/\s*, \s*/g, ', ')
     .replace(/\s*–\s*/g, ', ')
     .replace(/,\s*,/g, ',');
 }
@@ -248,6 +248,15 @@ function estimateUsedHeightIn(model) {
   return lines * lineHeightIn * 1.08; // 8% margin for block spacing
 }
 
+// PDF-free page fit check for the hot path: uses the same line estimate the
+// selection loop uses. The real pdf gates run when the PDF is rendered on request.
+function gatePageFitEstimate(model) {
+  const used = estimateUsedHeightIn(model);
+  if (used > USABLE_HEIGHT_IN) return { gate: 'page_fit_estimate', pass: false, note: 'estimated content ' + used.toFixed(1) + 'in exceeds usable ' + USABLE_HEIGHT_IN + 'in' };
+  const trailingPct = Math.max(0, (USABLE_HEIGHT_IN - used) / USABLE_HEIGHT_IN);
+  return { gate: 'page_fit_estimate', pass: true, note: 'estimated 1 page; trailing whitespace ' + Math.round(trailingPct * 100) + '%' };
+}
+
 function gatePageFit(pdfPath, model) {
   const pages = pdfPageCount(pdfPath);
   if (pages !== 1) return { gate: 'page_fit', pass: false, note: 'rendered ' + pages + ' pages; re-selection required (never shrink type)' };
@@ -267,12 +276,12 @@ function gateBulletLint(model) {
   const problems = [];
   const allBullets = model.roles.flatMap((r) => r.bullets.map((b) => b.text)).concat(model.projects.map((p) => p.text));
   for (const t of allBullets) {
-    if (/—|–/.test(t)) problems.push('em dash: ' + t.slice(0, 50));
+    if (/, |–/.test(t)) problems.push('em dash: ' + t.slice(0, 50));
     if (!/^[A-Z]/.test(t.trim())) problems.push('not verb-first capitalized: ' + t.slice(0, 50));
     if (estLines(t, BULLET_CHARS_PER_LINE) > 2) problems.push('over 2 lines: ' + t.slice(0, 50));
     if (SPELLED_NUMBERS.test(t)) problems.push('spelled-out number: ' + t.slice(0, 50));
   }
-  if (/—|–/.test(model.summary)) problems.push('em dash in summary');
+  if (/, |–/.test(model.summary)) problems.push('em dash in summary');
   return { gate: 'bullet_lint', pass: problems.length === 0, note: problems.length ? problems.slice(0, 4).join(' | ') : allBullets.length + ' bullets pass verb-first, digits, 2-line, no-em-dash checks' };
 }
 
@@ -313,7 +322,8 @@ async function renderResumeVariant({ inventory, jdText, outDir, variantId, optio
     })),
   }));
 
-  let attempt = 0; let model; let pdfPath; let htmlPath; let selection;
+  const htmlOnly = options.htmlOnly === true;
+  let attempt = 0; let model; let pdfPath; let htmlPath; let selection; let html;
   while (attempt < 5) {
     selection = selectBullets(experience, jdText, budget);
     const byRole = experience.map((r, ri) => ({
@@ -335,7 +345,16 @@ async function renderResumeVariant({ inventory, jdText, outDir, variantId, optio
 
     htmlPath = path.join(outDir, variantId + '.html');
     pdfPath = path.join(outDir, variantId + '.pdf');
-    fs.writeFileSync(htmlPath, buildHtml(model));
+    html = buildHtml(model);
+    fs.writeFileSync(htmlPath, html);
+
+    if (htmlOnly) {
+      // Hot path: no Chrome. Page fit is estimated; the PDF renders async on request.
+      if (estimateUsedHeightIn(model) <= USABLE_HEIGHT_IN) break;
+      budget = Math.max(6, budget - 1);
+      attempt++;
+      continue;
+    }
     htmlToPdf(htmlPath, pdfPath);
 
     const pages = pdfPageCount(pdfPath);
@@ -345,15 +364,22 @@ async function renderResumeVariant({ inventory, jdText, outDir, variantId, optio
     attempt++;
   }
 
-  const gateResults = [
-    gateTruthfulness(model),
-    gatePageFit(pdfPath, model),
-    gateTypography(),
-    gateBulletLint(model),
-    gateAts(pdfPath, model),
-    gateRender(pdfPath),
-  ];
-  return { pdfPath, htmlPath, gateResults, cutList: selection.cut, model, variantId };
+  const gateResults = htmlOnly
+    ? [
+        gateTruthfulness(model),
+        gatePageFitEstimate(model),
+        gateTypography(),
+        gateBulletLint(model),
+      ]
+    : [
+        gateTruthfulness(model),
+        gatePageFit(pdfPath, model),
+        gateTypography(),
+        gateBulletLint(model),
+        gateAts(pdfPath, model),
+        gateRender(pdfPath),
+      ];
+  return { pdfPath: htmlOnly ? null : pdfPath, expectedPdfPath: pdfPath, htmlPath, html, gateResults, cutList: selection.cut, model, variantId };
 }
 
-module.exports = { renderResumeVariant, buildHtml, selectBullets, stripEmDashes, STYLE };
+module.exports = { renderResumeVariant, buildHtml, selectBullets, stripEmDashes, STYLE, findChrome, pdfPageCount };
