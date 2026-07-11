@@ -3,8 +3,10 @@
   "fetchedAt": "2026-07-11T22:30:00Z",
   "profile": {
     "hardFilters": [
-      "Reject onsite roles outside the San Francisco Bay Area unless remote is allowed",
-      "Reject roles with a disclosed USD base salary minimum below 150000"
+      "location_excludes:dublin",
+      "location_excludes:london",
+      "location_excludes:berlin",
+      "comp_floor:150000"
     ]
   },
   "jobCases": [
@@ -151,33 +153,6 @@
       "baseSalary": null,
       "sourceUrl": "https://jobs.ashbyhq.com/linear/86abcce0-04b2-405c-9a8e-e0ca84813914",
       "expected": { "rejected": false, "reason": "Remote work is allowed; disclosed base is unavailable" }
-    }
-  ],
-  "messageCases": [
-    {
-      "id": "message-recruiter-outreach",
-      "text": "Hi, I recruit for Acme. Your product background looks relevant to a role on our AI platform team. Are you open to a short call next week?",
-      "expected": "recruiter_outreach"
-    },
-    {
-      "id": "message-interview-invite",
-      "text": "The team enjoyed reviewing your application and would like to schedule a 45 minute interview with the hiring manager.",
-      "expected": "interview_invite"
-    },
-    {
-      "id": "message-rejection",
-      "text": "Thank you for your time. We have decided to move forward with other candidates for this position.",
-      "expected": "rejection"
-    },
-    {
-      "id": "message-follow-up",
-      "text": "Just checking whether you are still interested. If so, please send a few times that work for a follow-up conversation.",
-      "expected": "follow_up"
-    },
-    {
-      "id": "message-network-reply",
-      "text": "Happy to help. Send me the job link and your latest resume, and I can submit an internal referral.",
-      "expected": "referral_offer"
     }
   ]
 }

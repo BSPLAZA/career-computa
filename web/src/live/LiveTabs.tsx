@@ -1,11 +1,11 @@
 // Live-mode tabs backed by Convex queries and mutations. Rendered only when
 // the repo-root .convex-url existed at build time. Gaps against the spec are
 // marked LIVE GAP in comments and reported to the brain:
-//   1. ledger rows carry no runId, so VERIFY cannot open a trace directly
+//   1. RESOLVED: ledger rows now carry runId, VERIFY opens the trace in one click
 //   2. no list-users query, so the Pipeline selector takes a pasted userId
 //   3. no list-runs / artifacts-for-run query, so Runs needs a pasted runId
 //   4. digestQueue returns a 280 char preview, not full content
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api, getMyUserId, setMyUserId, clearMyUserId } from '../convex';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -311,8 +311,7 @@ export function LiveLedger() {
                 <td className="num-r">{fmtUsd(r.costUsd)}</td>
                 <td className="num-r">{r.latencyMs !== null ? fmtMs(r.latencyMs) : '...'}</td>
                 <td>
-                  {/* LIVE GAP: ledger rows carry no runId; Runs tab takes a pasted run id until the convex lane adds one */}
-                  <a href="#trace" onClick={e => { e.preventDefault(); dispatch({ type: 'setTab', tab: 'runs', runsFocus: { taskId: r.taskId } }); }}>VERIFY</a>
+                  <a href="#trace" onClick={e => { e.preventDefault(); dispatch({ type: 'setTab', tab: 'runs', runsFocus: { taskId: r.taskId, runId: r.runId ?? undefined } }); }}>VERIFY</a>
                 </td>
               </tr>
             ))}
@@ -390,10 +389,20 @@ const ROLE_COLORS: Record<string, string> = {
 
 export function LiveRuns() {
   const { state } = useStore();
-  const [runIdInput, setRunIdInput] = useState('');
-  const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  const focusRun = state.runsFocus?.runId;
+  const [runIdInput, setRunIdInput] = useState(focusRun ?? '');
+  const [activeRunId, setActiveRunId] = useState<string | null>(focusRun ?? null);
   const [roleFilter, setRoleFilter] = useState('all');
   const trace = useQuery(api.runs.traceTree, activeRunId ? { runId: activeRunId as Id<'runs'> } : 'skip');
+
+  // Ledger VERIFY navigates here with a runId; open its trace directly.
+  useEffect(() => {
+    if (focusRun && focusRun !== activeRunId) {
+      setRunIdInput(focusRun);
+      setActiveRunId(focusRun);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusRun]);
 
   const focusTask = state.runsFocus?.taskId;
 
@@ -401,10 +410,14 @@ export function LiveRuns() {
     <div>
       <h2>Runs</h2>
       <p className="sub">The trace IS the product proof. Paste a run id to open its full step tree.</p>
-      {focusTask && (
+      {focusTask && !focusRun && (
         <div className="note-stub" style={{ marginBottom: 14 }}>
-          Verifying task <span className="mono">{focusTask}</span>. Run ids for a task appear in the worker logs and queue cards;
-          a direct task-to-trace link lands when the ledger query exposes runId.
+          Verifying task <span className="mono">{focusTask}</span>. It has no run yet (still queued or escalated before a run started).
+        </div>
+      )}
+      {focusTask && focusRun && (
+        <div className="note-stub" style={{ marginBottom: 14 }}>
+          Verifying task <span className="mono">{focusTask}</span>: trace opened below.
         </div>
       )}
       <div className="filters">

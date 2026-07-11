@@ -4,12 +4,11 @@
 **Track:** AI as Agency (Track 3)
 **One-liner:** A career consultant agency run by an agent crew: hand it your career data, it finds real openings on live company job boards, scores fit with evidence, researches the company, tailors your resume through quality gates, writes your LinkedIn outreach, and delivers the finished package to your Telegram; only the send decision stays human.
 
-**Live product:** [FILL: workers.dev URL]  (public ledger tab shows every task with a VERIFY link: live posting, full agent trace with per-step cost, artifacts)
-**Repo:** [FILL: github.com/BSPLAZA/... , first commit 2026-07-11 on the floor]
+**Live product:** https://career-agency-web.bsplaza.workers.dev  (public ledger tab shows every task with a VERIFY link: live posting, full agent trace with per-step cost, artifacts)
+**Repo:** https://github.com/BSPLAZA/career-computa (public; every commit today, on the floor)
 
-**How we use Hermes (both qualifying ways):**
-1. Coding partner: build modules written inside Hermes sessions this afternoon; session receipts available on this machine (hermes dashboard, sessions log). Hermes also authored the role charters and the eval runner in the repo.
-2. Base harness: the agency's manager and role charters run on Hermes (delegate_task fan-out, cron-scheduled runs, persistent memory); the owner control chat is a locked Telegram gateway.
+**How we use Hermes (eligibility path: coding partner, with receipts):**
+Hermes sessions authored real modules of this product on the floor today: the six agent role charters, the fit-eval harness and its recorded baseline, and the ElevenLabs task announcer. Session receipts (prompts, tool calls, outputs) are browsable on our machine via the Hermes dashboard and session logs, alongside a same-day public commit history. The agency's role charters are also mounted in our Hermes runtime for operator use; we make no claim that the product's task pipeline executes on Hermes.
 
 **The agent org:** manager plans per request, delegates to scout, researcher, drafter, pipeline specialists with narrowed tools, reviews against a hard acceptance checklist, and sends work back for revision (revised steps visible in every trace). Multi-tenant: any attendee signs up with their own email, uploads their own LinkedIn export or resume (or the 3-field quick path), and gets a real delivered package.
 

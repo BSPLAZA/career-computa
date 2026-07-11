@@ -1,8 +1,8 @@
-import { access, readFile } from "node:fs/promises";
-import { pathToFileURL } from "node:url";
+import { readFile, writeFile } from "node:fs/promises";
 
 const fixtureUrl = new URL("./fit-eval-cases.json", import.meta.url);
 const intakeUrl = new URL("../agents/intake.js", import.meta.url);
+const resultsUrl = new URL("./eval-results-v1.json", import.meta.url);
 
 function boolVerdict(result) {
   if (typeof result === "boolean") return result;
@@ -13,106 +13,74 @@ function boolVerdict(result) {
   );
 }
 
-function classVerdict(result) {
-  if (typeof result === "string") return result;
-  return result?.classification ?? result?.category ?? result?.kind ?? result?.label;
+const fixtures = JSON.parse(await readFile(fixtureUrl, "utf8"));
+const { applyHardFilters } = await import(`${intakeUrl.href}?v=${Date.now()}`);
+
+if (typeof applyHardFilters !== "function") {
+  throw new TypeError("agents/intake.js must export applyHardFilters(job, hardFilters)");
 }
 
-function exportedFunctions(module) {
-  const values = { ...module };
-  if (module.default && typeof module.default === "object") {
-    Object.assign(values, module.default);
-  } else if (typeof module.default === "function") {
-    values.default = module.default;
-  }
-  return Object.entries(values).filter(([, value]) => typeof value === "function");
-}
+console.log(`${fixtures.name} | real scorer`);
+console.log("Scorer: agents/intake.js#applyHardFilters(job, hardFilters)");
 
-async function loadScorers() {
+const cases = fixtures.jobCases.map((item) => {
+  const compRange = item.baseSalary
+    ? `${item.baseSalary.min}-${item.baseSalary.max} ${item.baseSalary.currency}`
+    : undefined;
   try {
-    await access(intakeUrl);
-  } catch {
-    return null;
-  }
-  const module = await import(`${pathToFileURL(intakeUrl.pathname).href}?v=${Date.now()}`);
-  const functions = exportedFunctions(module);
-  const job = functions.find(([name]) => /hard|fit|score|job/i.test(name));
-  const message = functions.find(([name]) => /class|message|intake/i.test(name));
-  return { job, message, available: functions.map(([name]) => name) };
-}
-
-function printFixtureTable(fixtures) {
-  console.log(`${fixtures.name} | fixture-only mode`);
-  console.table(
-    fixtures.jobCases.map((item) => ({
+    const verdict = applyHardFilters({ ...item, compRange }, fixtures.profile.hardFilters);
+    const actualRejected = boolVerdict(verdict);
+    const passed = actualRejected === item.expected.rejected;
+    return {
       id: item.id,
       company: item.company,
-      location: item.location,
+      sourceUrl: item.sourceUrl,
       expected: item.expected.rejected ? "reject" : "pass",
-    })),
-  );
-  console.table(
-    fixtures.messageCases.map((item) => ({
+      actual: actualRejected ? "reject" : "pass",
+      result: passed ? "PASS" : "FAIL",
+      expectedReason: item.expected.reason,
+      scorerReason: verdict.reason ?? null,
+    };
+  } catch (error) {
+    return {
       id: item.id,
-      expected: item.expected,
-    })),
-  );
-  console.log(`${fixtures.jobCases.length} job cases | ${fixtures.messageCases.length} message cases`);
-}
-
-async function runScored(fixtures, scorers) {
-  console.log(`${fixtures.name} | agents/intake.js mode`);
-  console.log(`Exports: ${scorers.available.join(", ") || "none"}`);
-  let correct = 0;
-  let total = 0;
-
-  if (scorers.job) {
-    const [, scoreJob] = scorers.job;
-    const rows = [];
-    for (const item of fixtures.jobCases) {
-      try {
-        const result = await scoreJob(item, fixtures.profile);
-        const actual = boolVerdict(result);
-        const pass = actual === item.expected.rejected;
-        correct += Number(pass);
-        total += 1;
-        rows.push({ id: item.id, expected: item.expected.rejected ? "reject" : "pass", actual: actual ? "reject" : "pass", result: pass ? "PASS" : "FAIL" });
-      } catch (error) {
-        total += 1;
-        rows.push({ id: item.id, expected: item.expected.rejected ? "reject" : "pass", actual: "error", result: error.message });
-      }
-    }
-    console.table(rows);
+      company: item.company,
+      sourceUrl: item.sourceUrl,
+      expected: item.expected.rejected ? "reject" : "pass",
+      actual: "error",
+      result: "FAIL",
+      expectedReason: item.expected.reason,
+      scorerReason: null,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
+});
 
-  if (scorers.message) {
-    const [, classifyMessage] = scorers.message;
-    const rows = [];
-    for (const item of fixtures.messageCases) {
-      try {
-        const actual = classVerdict(await classifyMessage(item.text));
-        const pass = actual === item.expected;
-        correct += Number(pass);
-        total += 1;
-        rows.push({ id: item.id, expected: item.expected, actual, result: pass ? "PASS" : "FAIL" });
-      } catch (error) {
-        total += 1;
-        rows.push({ id: item.id, expected: item.expected, actual: "error", result: error.message });
-      }
-    }
-    console.table(rows);
-  }
+console.table(cases.map(({ id, company, expected, actual, result, scorerReason }) => ({
+  id,
+  company,
+  expected,
+  actual,
+  result,
+  reason: scorerReason ?? "not rejected",
+})));
 
-  if (total === 0) {
-    console.log("No compatible scorer exports found. Printing fixtures instead.");
-    printFixtureTable(fixtures);
-    return;
-  }
-  const percent = ((correct / total) * 100).toFixed(1);
-  console.log(`Score: ${correct}/${total} (${percent}%)`);
-}
+const passed = cases.filter((item) => item.result === "PASS").length;
+const total = cases.length;
+const failed = total - passed;
+const percent = total === 0 ? 0 : Number(((passed / total) * 100).toFixed(1));
+const output = {
+  timestamp: new Date().toISOString(),
+  fixture: fixtures.name,
+  fixtureFetchedAt: fixtures.fetchedAt,
+  scorer: "agents/intake.js#applyHardFilters(job, hardFilters)",
+  hardFilters: fixtures.profile.hardFilters,
+  summary: { passed, failed, total, percent },
+  cases,
+};
 
-const fixtures = JSON.parse(await readFile(fixtureUrl, "utf8"));
-const scorers = await loadScorers();
-if (!scorers) printFixtureTable(fixtures);
-else await runScored(fixtures, scorers);
+await writeFile(resultsUrl, `${JSON.stringify(output, null, 2)}\n`);
+console.log(`Score: ${passed}/${total} (${percent.toFixed(1)}%)`);
+console.log(`Results: ${resultsUrl.pathname}`);
+
+if (failed > 0 || total !== 12) process.exitCode = 1;

@@ -2,6 +2,10 @@
 // Convex path: users:getById and userProfiles:getByUserId (STUB CONTRACT, confirm with convex lane).
 // Local path: reads the local store tables; falls back to a minimal anonymous profile so the
 // pipeline still runs and the gaps show up honestly in caveats.
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { REPO_ROOT } from './env.js';
+
 export async function loadUserContext(store, userId) {
   let user = null; let profile = null; let resumeText = '';
   try { user = await store.getUser(userId); } catch { /* missing fn on convex side yet */ }
@@ -25,6 +29,15 @@ export async function loadUserContext(store, userId) {
       hardFilters: [], softPrefs: [],
       stylePrefs: { style: 'modern-sans', density: 'lean', summaryLines: 2 }, preferenceRules: [],
     };
+  }
+  // Local per-user conventions until the schema grows homes for these:
+  // resume inventory at parsers/out/inventories/<userId>.json (feeds parsers/render.js),
+  // resume text at parsers/out/resume-texts/<userId>.txt (feeds fit scoring evidence).
+  const invPath = join(REPO_ROOT, 'parsers', 'out', 'inventories', `${userId}.json`);
+  if (!profile.resumeInventoryPath && existsSync(invPath)) profile.resumeInventoryPath = invPath;
+  if (!resumeText) {
+    const txtPath = join(REPO_ROOT, 'parsers', 'out', 'resume-texts', `${userId}.txt`);
+    if (existsSync(txtPath)) resumeText = readFileSync(txtPath, 'utf8');
   }
   return { user: user || { _id: userId }, profile, resumeText };
 }

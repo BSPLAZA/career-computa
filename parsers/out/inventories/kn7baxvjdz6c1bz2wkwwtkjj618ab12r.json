@@ -1,0 +1,144 @@
+{
+  "name": "Bryan Plaza",
+  "contact": {
+    "email": "BSPlaza@outlook.com",
+    "linkedin": "LinkedIn.com/in/BryanIAO",
+    "github": "GitHub.com/BSPLAZA",
+    "location": ""
+  },
+  "summary": "Builder and technical product manager who ships production software daily with AI coding agents. At Microsoft I design and ship the internal tooling and automation that multiply what engineering and partner teams can do, and I ship the code I spec, with 100+ pull-request and code-review contributions in TypeScript and Python. Before Microsoft I founded, built, and operated a full-stack Django and PostgreSQL real estate CRM that a working brokerage ran its daily business on, so real estate operations are my home domain. I turn vague workflow problems into scoped, instrumented systems that non-engineers run safely.",
+  "skills": [
+    {
+      "label": "Languages & Backend",
+      "items": [
+        "Python",
+        "TypeScript",
+        "JavaScript (Node.js)",
+        "Django",
+        "PostgreSQL",
+        "REST API design",
+        "React",
+        "SQL/KQL",
+        "Bash",
+        "HTML/CSS",
+        "YAML"
+      ]
+    },
+    {
+      "label": "AI & Agentic Engineering",
+      "items": [
+        "daily production development with AI coding agents (Claude Code plus an agent-skills standard interoperable with 17+ agents)",
+        "Claude and OpenAI APIs",
+        "Azure OpenAI (GPT-4o, o3-mini)",
+        "LLM-as-judge evaluation pipelines",
+        "multi-agent orchestration",
+        "Model Context Protocol (MCP)",
+        "AI guardrails and human-in-the-loop approval workflows"
+      ]
+    },
+    {
+      "label": "Infrastructure & Tooling",
+      "items": [
+        "GitHub Actions CI/CD",
+        "Docker",
+        "Linux VPS administration (systemd services, heartbeat monitoring)",
+        "Azure",
+        "async job pipelines",
+        "Telegram Bot API",
+        "Twilio",
+        "Playwright",
+        "observability and telemetry",
+        "A/B experimentation and staged rollouts"
+      ]
+    }
+  ],
+  "experience": [
+    {
+      "company": "Microsoft",
+      "title": "Product Manager",
+      "location": "Redmond, WA",
+      "dates": "Feb 2023 to Present",
+      "bullets": [
+        {
+          "theme": "Internal Tooling & Automation",
+          "text": "Conceived and built the team's first internal agent marketplace, letting engineers discover, install, and extend AI-assisted workflows across repositories; it grew into an org-level platform with ~400 active users."
+        },
+        {
+          "theme": "Internal Tooling & Automation",
+          "text": "Architected the platform on an open, executable agent-skills standard interoperable with 17+ AI coding agents including Claude Code, built the build/test/release pipeline (GitHub Actions CI/CD) that gates every contribution before it deploys, and cut new-engineer environment setup from hours to ~30 seconds."
+        },
+        {
+          "theme": "Internal Tooling & Automation",
+          "text": "Designed a multi-agent observability assistant so a ~300-person org could query performance and reliability data in natural language (~200 queries/week), with every answer carrying a confidence level, source attribution, and a freshness timestamp, replacing data pulls that previously required an engineer."
+        },
+        {
+          "theme": "Internal Tooling & Automation",
+          "text": "Automated the team's privacy-review workflow into reusable infrastructure: agentic intake, triage, and proactive leak sweeps with human-in-the-loop sign-off, mapping risk areas to mitigations so any reviewer can run the full workflow safely."
+        },
+        {
+          "theme": "Internal Tooling & Automation",
+          "text": "Built a self-serve benchmarking toolkit that ran competitive performance analysis in-house on demand, compressing work that previously took ~3 vendor hours per run down to minutes."
+        },
+        {
+          "theme": "AI Evaluation & Production Launches",
+          "text": "Made image-description quality measurable for a $2.6M/year service processing ~1.7B images monthly by building an LLM-as-judge pipeline (Python, Azure OpenAI o3-mini) on an existing five-dimension evaluation rubric I adopted and refined for a novel image-understanding domain, lifting quality scores from 30% to 80% and validating them against a 40-participant user study."
+        },
+        {
+          "theme": "AI Evaluation & Production Launches",
+          "text": "Took that AI capability from evaluation to general availability, moving inference off the cloud onto on-device processing to lower cost per image and protect unit margin, then shipping it to 100% of production desktop users in a cross-org launch."
+        },
+        {
+          "theme": "AI Evaluation & Production Launches",
+          "text": "Designed a governance bridge that structurally blocks AI agents from querying production data directly and routes them through authorized tools instead, making safe-by-default access a property of the platform rather than a policy people have to remember."
+        },
+        {
+          "theme": "Experimentation & Platform Health",
+          "text": "Drove A/B experiments across a product serving millions, balancing feature velocity with rollout safety: a content-removal test lifted recent-file engagement 47% and template clicks 17% before a staged rollout to 100% of users, and a header-search redesign reached 46% click-through at 87% session success."
+        },
+        {
+          "theme": "Experimentation & Platform Health",
+          "text": "Stood up performance scorecards that caught most regressions before they reached millions of users and forced a first-quarter roadmap reprioritization; ran a sprawling web-performance effort as accountable workstreams with explicit owner, risk, and validation tracking."
+        }
+      ]
+    },
+    {
+      "company": "Self-Employed",
+      "title": "Founder & Developer",
+      "location": "Remote",
+      "dates": "Jan 2022 to Feb 2023",
+      "bullets": [
+        {
+          "theme": "",
+          "text": "Built and deployed a full-stack real estate CRM on the OpenAI API (Django, React, PostgreSQL, REST, Twilio VoIP), running ~15 agents on a 20k-contact book of business through deployment, daily use, and commission-disbursement tracking."
+        },
+        {
+          "theme": "",
+          "text": "Centralized communications and automated lead response so agents cut dropped follow-ups, sped first-contact time, and kept partner and deal-closing activity visible in one system, owning the full loop from requirements through production support."
+        }
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "Personal agent platform",
+      "text": "Built and operate a 24/7 multi-agent assistant on a Linux VPS: PostgreSQL as the single source of truth, systemd-managed services with heartbeat monitoring, a Telegram bot command surface, an MCP server exposing ~40 tools, and async pipelines that run research and job-search workflows end to end; built and evolved daily with Claude Code."
+    },
+    {
+      "name": "Video automation CLI",
+      "text": "Wrote a TypeScript CLI (Node.js, ffmpeg, Whisper transcription) that takes daily short-form footage from raw clips to captioned, publish-ready cuts through typed, tested commands."
+    },
+    {
+      "name": "WhisperKey",
+      "text": "Shipped a privacy-focused macOS dictation app in Swift running OpenAI Whisper fully on device with zero cloud dependency, published as open source (GitHub.com/BSPLAZA/WhisperKey)."
+    }
+  ],
+  "education": [
+    {
+      "school": "Rutgers School of Engineering",
+      "degree": "Bachelor of Science: Computer Engineering, Minor in Computer Science",
+      "location": "New Brunswick, NJ"
+    }
+  ],
+  "sourceDoc": "BRYAN Z PLAZA - Resume.pdf",
+  "rawText": "BRYAN PLAZA                                                                                 BSPlaza@outlook.com ♦ LinkedIn.com/in/BryanIAO\n                                                                                                                     GitHub.com/BSPLAZA\nBuilder and technical product manager who ships production software daily with AI coding agents. At Microsoft I design and ship the internal\ntooling and automation that multiply what engineering and partner teams can do, and I ship the code I spec, with 100+ pull-request and code-\nreview contributions in TypeScript and Python. Before Microsoft I founded, built, and operated a full-stack Django and PostgreSQL real estate\nCRM that a working brokerage ran its daily business on, so real estate operations are my home domain. I turn vague workflow problems into\nscoped, instrumented systems that non-engineers run safely.\nSKILLS\nLanguages & Backend: Python, TypeScript, JavaScript (Node.js), Django, PostgreSQL, REST API design, React, SQL/KQL, Bash,\nHTML/CSS, YAML\nAI & Agentic Engineering: daily production development with AI coding agents (Claude Code plus an agent-skills standard interoperable with\n17+ agents), Claude and OpenAI APIs, Azure OpenAI (GPT-4o, o3-mini), LLM-as-judge evaluation pipelines, multi-agent orchestration, Model\nContext Protocol (MCP), AI guardrails and human-in-the-loop approval workflows\nInfrastructure & Tooling: GitHub Actions CI/CD, Docker, Linux VPS administration (systemd services, heartbeat monitoring), Azure, async\njob pipelines, Telegram Bot API, Twilio, Playwright, observability and telemetry, A/B experimentation and staged rollouts\nPROFESSIONAL EXPERIENCE\nProduct Manager                                                                                                                Feb 2023 to Present\nMicrosoft                                                                                                                           Redmond, WA\nInternal Tooling & Automation\n    Conceived and built the team's first internal agent marketplace, letting engineers discover, install, and extend AI-assisted workflows across\n    repositories; it grew into an org-level platform with ~400 active users.\n    Architected the platform on an open, executable agent-skills standard interoperable with 17+ AI coding agents including Claude Code, built\n    the build/test/release pipeline (GitHub Actions CI/CD) that gates every contribution before it deploys, and cut new-engineer environment\n    setup from hours to ~30 seconds.\n    Designed a multi-agent observability assistant so a ~300-person org could query performance and reliability data in natural language (~200\n    queries/week), with every answer carrying a confidence level, source attribution, and a freshness timestamp, replacing data pulls that\n    previously required an engineer.\n    Automated the team's privacy-review workflow into reusable infrastructure: agentic intake, triage, and proactive leak sweeps with human-in-\n    the-loop sign-off, mapping risk areas to mitigations so any reviewer can run the full workflow safely.\n    Built a self-serve benchmarking toolkit that ran competitive performance analysis in-house on demand, compressing work that previously\n    took ~3 vendor hours per run down to minutes.\nAI Evaluation & Production Launches\n    Made image-description quality measurable for a $2.6M/year service processing ~1.7B images monthly by building an LLM-as-judge\n    pipeline (Python, Azure OpenAI o3-mini) on an existing five-dimension evaluation rubric I adopted and refined for a novel image-\n    understanding domain, lifting quality scores from 30% to 80% and validating them against a 40-participant user study.\n    Took that AI capability from evaluation to general availability, moving inference off the cloud onto on-device processing to lower cost per\n    image and protect unit margin, then shipping it to 100% of production desktop users in a cross-org launch.\n    Designed a governance bridge that structurally blocks AI agents from querying production data directly and routes them through authorized\n    tools instead, making safe-by-default access a property of the platform rather than a policy people have to remember.\nExperimentation & Platform Health\n    Drove A/B experiments across a product serving millions, balancing feature velocity with rollout safety: a content-removal test lifted recent-\n    file engagement 47% and template clicks 17% before a staged rollout to 100% of users, and a header-search redesign reached 46% click-\n    through at 87% session success.\n    Stood up performance scorecards that caught most regressions before they reached millions of users and forced a first-quarter roadmap\n    reprioritization; ran a sprawling web-performance effort as accountable workstreams with explicit owner, risk, and validation tracking.\nFounder & Developer                                                                                                    Jan 2022 to Feb 2023\nSelf-Employed                                                                                                                       Remote\n    Built and deployed a full-stack real estate CRM on the OpenAI API (Django, React, PostgreSQL, REST, Twilio VoIP), running ~15 agents on\n    a 20k-contact book of business through deployment, daily use, and commission-disbursement tracking.\n    Centralized communications and automated lead response so agents cut dropped follow-ups, sped first-contact time, and kept partner and\n    deal-closing activity visible in one system, owning the full loop from requirements through production support.\nPROJECTS\n    Personal agent platform: Built and operate a 24/7 multi-agent assistant on a Linux VPS: PostgreSQL as the single source of truth, systemd-\n    managed services with heartbeat monitoring, a Telegram bot command surface, an MCP server exposing ~40 tools, and async pipelines that\n    run research and job-search workflows end to end; built and evolved daily with Claude Code.\n    Video automation CLI: Wrote a TypeScript CLI (Node.js, ffmpeg, Whisper transcription) that takes daily short-form footage from raw clips\n    to captioned, publish-ready cuts through typed, tested commands.\n    WhisperKey: Shipped a privacy-focused macOS dictation app in Swift running OpenAI Whisper fully on device with zero cloud\n    dependency, published as open source (GitHub.com/BSPLAZA/WhisperKey).\nE D U C AT I O N\nRutgers School of Engineering ♦ Bachelor of Science: Computer Engineering, Minor in Computer Science                         New Brunswick, NJ\n\f"
+}

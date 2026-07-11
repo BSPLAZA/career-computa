@@ -7,6 +7,10 @@ import Ledger from './tabs/Ledger';
 import Runs from './tabs/Runs';
 import Roster from './tabs/Roster';
 import { LiveOnboard, LiveQueue, LiveLedger, LivePipeline, LiveRuns } from './live/LiveTabs';
+import LiveBrief from './live/Brief';
+
+// /brief/<artifactId> is the unique delivery link surface; everything else is the dashboard.
+const briefMatch = window.location.pathname.match(/^\/brief\/([A-Za-z0-9_-]+)\/?$/);
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'onboard', label: 'Onboard' },
@@ -19,6 +23,22 @@ const TABS: { id: TabId; label: string }[] = [
 
 export default function App() {
   const { state, dispatch } = useStore();
+
+  if (briefMatch) {
+    return (
+      <>
+        <header className="topbar">
+          <div className="brand">Career <span>Agency</span></div>
+          <div className="topbar-right"><a href="/" style={{ fontSize: 13 }}>dashboard</a></div>
+        </header>
+        <main>
+          {LIVE
+            ? <LiveBrief artifactId={briefMatch[1]} />
+            : <div className="panel empty">Brief links need the live backend; this build is in mock mode.</div>}
+        </main>
+      </>
+    );
+  }
 
   return (
     <>
