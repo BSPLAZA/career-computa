@@ -1,0 +1,16 @@
+{
+  "_comment": "TEST FIXTURE ONLY. Generic fake persona for pipeline smoke tests. Never used on the demo path; demo runs load the real signed-up user from the store.",
+  "user": { "_id": "test_user_1", "email": "test@example.com", "isTeam": true, "demoMode": true },
+  "profile": {
+    "userId": "test_user_1",
+    "name": "Taylor Sample",
+    "headline": "Senior Product Manager, AI platforms",
+    "locations": ["San Francisco, CA", "Remote"],
+    "goals": { "targetTitles": ["Product Manager", "Senior Product Manager", "Platform PM"], "remote": "flexible", "weeklyQuota": 5 },
+    "hardFilters": ["title_excludes:intern", "title_excludes:staff accountant", "location_excludes:tokyo"],
+    "softPrefs": ["agent products", "developer platforms", "series B or later"],
+    "stylePrefs": { "style": "modern-sans", "density": "lean", "summaryLines": 2 },
+    "preferenceRules": []
+  },
+  "resumeText": "Taylor Sample. Senior Product Manager with 7 years shipping AI and platform products. Led a conversational AI assistant from 0 to 2M monthly users. Ran discovery and roadmap for a developer API platform (40% YoY growth). Shipped LLM evaluation tooling used by 30 internal teams. Previously data analyst. BS in Computer Science."
+}

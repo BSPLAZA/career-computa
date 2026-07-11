@@ -1,0 +1,38 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Bryan Plaza Resume bryan-smoke-2026-07-11</title><style>
+  @page { size: letter; margin: 0.55in; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Times New Roman', Times, serif; font-size: 10pt; line-height: 1.22; color: #111; text-align: left; }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6pt; }
+  .name { font-size: 22pt; letter-spacing: 3pt; text-transform: uppercase; font-weight: bold; }
+  .contact { text-align: right; font-size: 9.5pt; line-height: 1.35; }
+  .contact a { color: #111; text-decoration: none; }
+  h2 { font-size: 11pt; font-variant: small-caps; letter-spacing: 2pt; font-weight: bold; border-bottom: 0.5pt solid #999; padding-bottom: 1.5pt; margin: 9pt 0 4pt 0; }
+  .summary { margin-bottom: 2pt; }
+  .skill-line { margin-bottom: 1.5pt; }
+  .skill-line b { font-style: italic; }
+  .role-head { display: flex; justify-content: space-between; margin-top: 4pt; }
+  .role-title { font-weight: bold; font-style: italic; }
+  .role-dates { font-size: 9.5pt; }
+  .role-sub { display: flex; justify-content: space-between; font-size: 9.5pt; margin-bottom: 1pt; }
+  .theme { font-weight: bold; font-size: 9.5pt; letter-spacing: 0.5pt; margin: 2.5pt 0 0.5pt 0; }
+  ul { margin: 0 0 0 14pt; }
+  li { margin-bottom: 1.5pt; padding-left: 2pt; }
+  .proj b { font-style: italic; }
+  .edu { display: flex; justify-content: space-between; }
+  </style></head><body>
+  <div class="top"><div class="name">Bryan Plaza</div><div class="contact">BSPlaza@outlook.com<br>LinkedIn.com/in/BryanIAO<br>GitHub.com/BSPLAZA</div></div>
+  <div class="summary">Builder and technical product manager who ships production software daily with AI coding agents. I turn vague workflow problems into scoped, instrumented systems that non-engineers run safely.</div>
+  <h2>Skills</h2>
+  <div class="skill-line"><b>Languages &amp; Backend:</b> Python, TypeScript, JavaScript (Node.js), Django, PostgreSQL, REST API design, React, SQL/KQL, Bash, HTML/CSS, YAML</div><div class="skill-line"><b>AI &amp; Agentic Engineering:</b> daily production development with AI coding agents (Claude Code plus an agent-skills standard interoperable with 17+ agents), Claude and OpenAI APIs, Azure OpenAI (GPT-4o, o3-mini)</div><div class="skill-line"><b>Infrastructure &amp; Tooling:</b> GitHub Actions CI/CD, Docker, Linux VPS administration (systemd services, heartbeat monitoring), Azure, async job pipelines, Telegram Bot API, Twilio, Playwright</div>
+  <h2>Professional Experience</h2>
+  
+    <div class="role-head"><span class="role-title">Product Manager</span><span class="role-dates">Feb 2023 to Present</span></div>
+    <div class="role-sub"><span>Microsoft</span><span>Redmond, WA</span></div>
+    <div class="theme">Internal Tooling &amp; Automation</div><ul><li>Conceived and built the team's first internal agent marketplace, letting engineers discover, install, and extend AI-assisted workflows across repositories; it grew into an org-level platform with ~400 active users.</li><li>Architected the platform on an open, executable agent-skills standard interoperable with 17+ AI coding agents including Claude Code, built the build/test/release pipeline (GitHub Actions CI/CD) that gates every contribution before it deploys, and cut new-engineer environment setup from hours to ~30 seconds.</li><li>Designed a multi-agent observability assistant so a ~300-person org could query performance and reliability data in natural language (~200 queries/week), with every answer carrying a confidence level, source attribution, and a freshness timestamp, replacing data pulls that previously required an engineer.</li></ul><div class="theme">AI Evaluation &amp; Production Launches</div><ul><li>Made image-description quality measurable for a $2.6M/year service processing ~1.7B images monthly by building an LLM-as-judge pipeline (Python, Azure OpenAI o3-mini) on an existing five-dimension evaluation rubric I adopted and refined for a novel image-understanding domain, lifting quality scores from 30% to 80% and validating them against a 40-participant user study.</li><li>Designed a governance bridge that structurally blocks AI agents from querying production data directly and routes them through authorized tools instead, making safe-by-default access a property of the platform rather than a policy people have to remember.</li></ul><div class="theme">Experimentation &amp; Platform Health</div><ul><li>Drove A/B experiments across a product serving millions, balancing feature velocity with rollout safety: a content-removal test lifted recent-file engagement 47% and template clicks 17% before a staged rollout to 100% of users, and a header-search redesign reached 46% click-through at 87% session success.</li></ul>
+    <div class="role-head"><span class="role-title">Founder &amp; Developer</span><span class="role-dates">Jan 2022 to Feb 2023</span></div>
+    <div class="role-sub"><span>Self-Employed</span><span>Remote</span></div>
+    <ul><li>Centralized communications and automated lead response so agents cut dropped follow-ups, sped first-contact time, and kept partner and deal-closing activity visible in one system, owning the full loop from requirements through production support.</li></ul>
+  <h2>Projects</h2><ul><li class="proj"><b>Personal agent platform:</b> Built and operate a 24/7 multi-agent assistant on a Linux VPS: PostgreSQL as the single source of truth, systemd-managed services with heartbeat monitoring, a Telegram bot command surface, an MCP server exposing ~40 tools, and async pipelines that run research and job-search workflows end to end; built and evolved daily with Claude Code.</li><li class="proj"><b>Video automation CLI:</b> Wrote a TypeScript CLI (Node.js, ffmpeg, Whisper transcription) that takes daily short-form footage from raw clips to captioned, publish-ready cuts through typed, tested commands.</li><li class="proj"><b>WhisperKey:</b> Shipped a privacy-focused macOS dictation app in Swift running OpenAI Whisper fully on device with zero cloud dependency, published as open source (GitHub.com/BSPLAZA/WhisperKey).</li></ul>
+  <h2>Education</h2>
+  <div class="edu"><span><b>Rutgers School of Engineering</b>, Bachelor of Science: Computer Engineering, Minor in Computer Science</span><span>New Brunswick, NJ</span></div>
+  </body></html>

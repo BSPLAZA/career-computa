@@ -1,0 +1,33 @@
+{
+  "user": {
+    "email": "team-bryan@career-agency.local",
+    "signedUpAt": 1783808700223,
+    "isTeam": true,
+    "demoMode": true,
+    "signupToken": "bryan-wledu6nl"
+  },
+  "profile": {
+    "name": "Bryan Plaza",
+    "headline": "Technical Product Manager @ Microsoft | Building Products with AI | Real Estate Tech",
+    "locations": [
+      "San Francisco Bay Area",
+      "New York City Metropolitan Area"
+    ],
+    "goals": {
+      "targetTitles": [
+        "Product Manager"
+      ],
+      "remote": "flexible"
+    },
+    "hardFilters": [],
+    "softPrefs": [],
+    "stylePrefs": {
+      "style": "plaza-serif",
+      "density": "lean",
+      "summaryLines": 3
+    },
+    "preferenceRules": []
+  },
+  "convexUserId": "kn7baxvjdz6c1bz2wkwwtkjj618ab12r",
+  "pendingMutations": []
+}

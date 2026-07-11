@@ -1,0 +1,9 @@
+{
+  // Static-assets Worker serving the built dashboard.
+  "name": "career-agency-web",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

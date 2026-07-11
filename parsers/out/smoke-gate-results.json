@@ -1,0 +1,68 @@
+{
+  "gateResults": [
+    {
+      "gate": "truthfulness",
+      "pass": true,
+      "note": "every bullet has a source pointer and every number appears in its source excerpt"
+    },
+    {
+      "gate": "page_fit",
+      "pass": true,
+      "note": "1 page; estimated trailing whitespace 0%"
+    },
+    {
+      "gate": "typography_floors",
+      "pass": true,
+      "note": "body 10pt, line-height 1.22, margins 0.55in, left aligned"
+    },
+    {
+      "gate": "bullet_lint",
+      "pass": false,
+      "note": "over 2 lines: Conceived and built the team's first internal agen | over 2 lines: Architected the platform on an open, executable ag | over 2 lines: Designed a multi-agent observability assistant so  | over 2 lines: Made image-description quality measurable for a $2"
+    },
+    {
+      "gate": "ats_extract",
+      "pass": true,
+      "note": "13 key strings re-extracted cleanly from the PDF text layer"
+    },
+    {
+      "gate": "render",
+      "pass": true,
+      "note": "PDF rendered, 176444 bytes"
+    }
+  ],
+  "cutList": [
+    {
+      "text": "Automated the team's privacy-review workflow into reusable infrastructure: agentic intake, triage, and proactive leak sweeps with human-in-the-loop sign-off, mapping risk areas to mitigations so any reviewer can run the full workflow safely.",
+      "theme": "Internal Tooling & Automation",
+      "score": 0.664,
+      "reason": "below relevance cutoff for this JD"
+    },
+    {
+      "text": "Built a self-serve benchmarking toolkit that ran competitive performance analysis in-house on demand, compressing work that previously took ~3 vendor hours per run down to minutes.",
+      "theme": "Internal Tooling & Automation",
+      "score": 0.757,
+      "reason": "below relevance cutoff for this JD"
+    },
+    {
+      "text": "Took that AI capability from evaluation to general availability, moving inference off the cloud onto on-device processing to lower cost per image and protect unit margin, then shipping it to 100% of production desktop users in a cross-org launch.",
+      "theme": "AI Evaluation & Production Launches",
+      "score": 1.056,
+      "reason": "below relevance cutoff for this JD"
+    },
+    {
+      "text": "Stood up performance scorecards that caught most regressions before they reached millions of users and forced a first-quarter roadmap reprioritization; ran a sprawling web-performance effort as accountable workstreams with explicit owner, risk, and validation tracking.",
+      "theme": "Experimentation & Platform Health",
+      "score": 0,
+      "reason": "below relevance cutoff for this JD"
+    },
+    {
+      "text": "Built and deployed a full-stack real estate CRM on the OpenAI API (Django, React, PostgreSQL, REST, Twilio VoIP), running ~15 agents on a 20k-contact book of business through deployment, daily use, and commission-disbursement tracking.",
+      "theme": "",
+      "score": 0.339,
+      "reason": "below relevance cutoff for this JD"
+    }
+  ],
+  "pdfPath": "/Users/orion/Documents/Hermes-Buildathon/build/career-agency/parsers/out/variants/bryan-smoke-2026-07-11.pdf",
+  "variantId": "bryan-smoke-2026-07-11"
+}

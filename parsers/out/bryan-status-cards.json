@@ -1,0 +1,80 @@
+[
+  {
+    "file": "Profile.csv",
+    "status": "ok",
+    "count": 1,
+    "note": ""
+  },
+  {
+    "file": "Positions.csv",
+    "status": "ok",
+    "count": 4,
+    "note": ""
+  },
+  {
+    "file": "Education.csv",
+    "status": "ok",
+    "count": 1,
+    "note": ""
+  },
+  {
+    "file": "Skills.csv",
+    "status": "ok",
+    "count": 55,
+    "note": ""
+  },
+  {
+    "file": "Connections.csv",
+    "status": "ok",
+    "count": 833,
+    "note": ""
+  },
+  {
+    "file": "Jobs/Job Applications.csv",
+    "status": "ok",
+    "count": 975,
+    "note": "Q&A pairs extracted to AnswerBank"
+  },
+  {
+    "file": "Job Applicant Saved Answers.csv",
+    "status": "ok",
+    "count": 42,
+    "note": ""
+  },
+  {
+    "file": "Job Applicant Saved Screening Question Responses.csv",
+    "status": "ok",
+    "count": 76,
+    "note": ""
+  },
+  {
+    "file": "Jobs/Job Seeker Preferences.csv",
+    "status": "ok",
+    "count": 1,
+    "note": ""
+  },
+  {
+    "file": "Jobs/Saved Jobs.csv",
+    "status": "ok",
+    "count": 27,
+    "note": ""
+  },
+  {
+    "file": "messages.csv",
+    "status": "ok",
+    "count": 114,
+    "note": "sent messages over 50 words, used as writing-voice samples"
+  },
+  {
+    "file": "Shares_722601691.csv",
+    "status": "ok",
+    "count": 9,
+    "note": ""
+  },
+  {
+    "file": "Comments_722601691.csv",
+    "status": "ok",
+    "count": 38,
+    "note": ""
+  }
+]

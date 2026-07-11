@@ -1,0 +1,183 @@
+{
+  "name": "fit-eval-v1",
+  "fetchedAt": "2026-07-11T22:30:00Z",
+  "profile": {
+    "hardFilters": [
+      "Reject onsite roles outside the San Francisco Bay Area unless remote is allowed",
+      "Reject roles with a disclosed USD base salary minimum below 150000"
+    ]
+  },
+  "jobCases": [
+    {
+      "id": "anthropic-5195866008",
+      "company": "Anthropic",
+      "board": "greenhouse:anthropic",
+      "postingId": "5195866008",
+      "title": "Product Management, Human Data Platform",
+      "location": "San Francisco, CA | New York City, NY",
+      "isRemote": false,
+      "baseSalary": null,
+      "sourceUrl": "https://job-boards.greenhouse.io/anthropic/jobs/5195866008",
+      "expected": { "rejected": false, "reason": "San Francisco is an allowed onsite location; disclosed base is unavailable" }
+    },
+    {
+      "id": "anthropic-5247640008",
+      "company": "Anthropic",
+      "board": "greenhouse:anthropic",
+      "postingId": "5247640008",
+      "title": "Product Manager, Claude Code Model Performance",
+      "location": "San Francisco, CA | Seattle, WA",
+      "isRemote": false,
+      "baseSalary": null,
+      "sourceUrl": "https://job-boards.greenhouse.io/anthropic/jobs/5247640008",
+      "expected": { "rejected": false, "reason": "San Francisco is an allowed onsite location; disclosed base is unavailable" }
+    },
+    {
+      "id": "anthropic-5208218008",
+      "company": "Anthropic",
+      "board": "greenhouse:anthropic",
+      "postingId": "5208218008",
+      "title": "AI Compliance Officer",
+      "location": "Dublin, IE",
+      "isRemote": false,
+      "baseSalary": null,
+      "sourceUrl": "https://job-boards.greenhouse.io/anthropic/jobs/5208218008",
+      "expected": { "rejected": true, "reason": "Onsite location is outside the San Francisco Bay Area and no remote option is listed" }
+    },
+    {
+      "id": "stripe-7979422",
+      "company": "Stripe",
+      "board": "greenhouse:stripe",
+      "postingId": "7979422",
+      "title": "Product Manager - Compliance, Bridge",
+      "location": "New York, San Francisco or Remote",
+      "isRemote": true,
+      "baseSalary": null,
+      "sourceUrl": "https://stripe.com/jobs/search?gh_jid=7979422",
+      "expected": { "rejected": false, "reason": "Remote work or San Francisco is allowed; disclosed base is unavailable" }
+    },
+    {
+      "id": "stripe-7721834",
+      "company": "Stripe",
+      "board": "greenhouse:stripe",
+      "postingId": "7721834",
+      "title": "Product Manager, Capital",
+      "location": "London",
+      "isRemote": false,
+      "baseSalary": null,
+      "sourceUrl": "https://stripe.com/jobs/search?gh_jid=7721834",
+      "expected": { "rejected": true, "reason": "Onsite location is outside the San Francisco Bay Area and no remote option is listed" }
+    },
+    {
+      "id": "stripe-7984866",
+      "company": "Stripe",
+      "board": "greenhouse:stripe",
+      "postingId": "7984866",
+      "title": "Product Manager, Ecosystem Risk",
+      "location": "New York, Atlanta, Remote, Toronto",
+      "isRemote": true,
+      "baseSalary": null,
+      "sourceUrl": "https://stripe.com/jobs/search?gh_jid=7984866",
+      "expected": { "rejected": false, "reason": "Remote work is allowed; disclosed base is unavailable" }
+    },
+    {
+      "id": "figma-5989185004",
+      "company": "Figma",
+      "board": "greenhouse:figma",
+      "postingId": "5989185004",
+      "title": "Product Manager, AI Growth",
+      "location": "San Francisco, CA • New York, NY • United States",
+      "isRemote": false,
+      "baseSalary": null,
+      "sourceUrl": "https://boards.greenhouse.io/figma/jobs/5989185004?gh_jid=5989185004",
+      "expected": { "rejected": false, "reason": "San Francisco is an allowed onsite location; disclosed base is unavailable" }
+    },
+    {
+      "id": "figma-5364702004",
+      "company": "Figma",
+      "board": "greenhouse:figma",
+      "postingId": "5364702004",
+      "title": "Account Executive, Emerging Enterprise (Berlin, Germany)",
+      "location": "Berlin, Germany",
+      "isRemote": false,
+      "baseSalary": null,
+      "sourceUrl": "https://boards.greenhouse.io/figma/jobs/5364702004?gh_jid=5364702004",
+      "expected": { "rejected": true, "reason": "Onsite location is outside the San Francisco Bay Area and no remote option is listed" }
+    },
+    {
+      "id": "sierra-422cb7bb",
+      "company": "Sierra",
+      "board": "ashby:sierra",
+      "postingId": "422cb7bb-ab03-447b-808c-6d72f59bbd2f",
+      "title": "Product Manager, Agent Data Platform",
+      "location": "San Francisco, CA",
+      "isRemote": false,
+      "baseSalary": { "currency": "USD", "min": 175000, "max": 350000 },
+      "sourceUrl": "https://jobs.ashbyhq.com/sierra/422cb7bb-ab03-447b-808c-6d72f59bbd2f",
+      "expected": { "rejected": false, "reason": "San Francisco is allowed and the disclosed base minimum is at least 150000 USD" }
+    },
+    {
+      "id": "sierra-6c3fb4c1",
+      "company": "Sierra",
+      "board": "ashby:sierra",
+      "postingId": "6c3fb4c1-e6ba-4e47-8d02-93ea89e75619",
+      "title": "Event Marketer",
+      "location": "San Francisco, CA",
+      "isRemote": false,
+      "baseSalary": { "currency": "USD", "min": 140000, "max": 200000 },
+      "sourceUrl": "https://jobs.ashbyhq.com/sierra/6c3fb4c1-e6ba-4e47-8d02-93ea89e75619",
+      "expected": { "rejected": true, "reason": "The disclosed USD base salary minimum is below 150000" }
+    },
+    {
+      "id": "linear-b7669c4b",
+      "company": "Linear",
+      "board": "ashby:linear",
+      "postingId": "b7669c4b-eeca-421d-ba9a-d90203f6fcb2",
+      "title": "Product Manager",
+      "location": "North America",
+      "isRemote": true,
+      "baseSalary": null,
+      "sourceUrl": "https://jobs.ashbyhq.com/linear/b7669c4b-eeca-421d-ba9a-d90203f6fcb2",
+      "expected": { "rejected": false, "reason": "Remote work is allowed; disclosed base is unavailable" }
+    },
+    {
+      "id": "linear-86abcce0",
+      "company": "Linear",
+      "board": "ashby:linear",
+      "postingId": "86abcce0-04b2-405c-9a8e-e0ca84813914",
+      "title": "Product Manager",
+      "location": "Europe",
+      "isRemote": true,
+      "baseSalary": null,
+      "sourceUrl": "https://jobs.ashbyhq.com/linear/86abcce0-04b2-405c-9a8e-e0ca84813914",
+      "expected": { "rejected": false, "reason": "Remote work is allowed; disclosed base is unavailable" }
+    }
+  ],
+  "messageCases": [
+    {
+      "id": "message-recruiter-outreach",
+      "text": "Hi, I recruit for Acme. Your product background looks relevant to a role on our AI platform team. Are you open to a short call next week?",
+      "expected": "recruiter_outreach"
+    },
+    {
+      "id": "message-interview-invite",
+      "text": "The team enjoyed reviewing your application and would like to schedule a 45 minute interview with the hiring manager.",
+      "expected": "interview_invite"
+    },
+    {
+      "id": "message-rejection",
+      "text": "Thank you for your time. We have decided to move forward with other candidates for this position.",
+      "expected": "rejection"
+    },
+    {
+      "id": "message-follow-up",
+      "text": "Just checking whether you are still interested. If so, please send a few times that work for a follow-up conversation.",
+      "expected": "follow_up"
+    },
+    {
+      "id": "message-network-reply",
+      "text": "Happy to help. Send me the job link and your latest resume, and I can submit an internal referral.",
+      "expected": "referral_offer"
+    }
+  ]
+}

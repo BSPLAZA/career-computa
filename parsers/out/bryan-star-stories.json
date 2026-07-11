@@ -1,0 +1,535 @@
+[
+  {
+    "title": "Driving OGX Accessibility Compliance Grades to Target Level",
+    "text": "Situation: The OGX Win32 accessibility compliance grade had been at D or D+ for over a year before Bryan took on the role of accessibility driver in February 2024. Task: Bryan was responsible for driving OGX Accessibility Compliance grades to a C for each end-of-month grade for Win32, while maintaining health scores at Gold status. Action: Bryan applied his accessibility knowledge to ensure compliance, proactively logged 4 new feature test passes, released inclusive products, conducted pre-vendor testing, and facilitated team member trainings. Result: All grades from May to December were C, except for October which received a D+ due to a bug reported in the wrong area path, and Gold status was maintained throughout the entire period.",
+    "competencies": [
+      "Accessibility Compliance",
+      "Product Quality",
+      "Proactive Risk Management"
+    ],
+    "sourceDoc": "Connect December 2024.txt",
+    "excerpt": "All grades from May to December were C, except for October, which was D+ due to a bug from a new feature test pass reported in the wrong area path for a different platform on Azure Dev Ops (Grade of D/D+ for 1yr+ before starting as a11y driver in Feb '24)."
+  },
+  {
+    "title": "Supporting APEX Team During Resource Shortage",
+    "text": "Situation: The APEX team faced a period where resources were short and key team members were out of office, creating a gap in accessibility coordination work. Task: As the accessibility driver for Win32 Shared UX, Bryan needed to coordinate all efforts for Shared UX with APEX and Web while also ensuring the APEX team's work continued in the absence of its members. Action: Bryan filled in for the APEX team, completed a spec for WCAG 2.2 for APEX Shared UX, and initiated the rollout work in their absence to ensure continuity and a cohesive approach to accessibility. Result: The work was kept on track, team members were supported during their absence, and a completed WCAG 2.2 spec was delivered for APEX Shared UX.",
+    "competencies": [
+      "Cross-team Collaboration",
+      "Ownership",
+      "Accessibility"
+    ],
+    "sourceDoc": "Connect December 2024.txt",
+    "excerpt": "I supported the APEX team by filling in when resources were short, ensuring the well-being of team members who were out of office. I completed a spec for WCAG 2.2 for APEX Shared UX and initiated the rollout work in their absence."
+  },
+  {
+    "title": "Creating a Stakeholder Alignment Tool for NPU Alt-Text Project",
+    "text": "Situation: During the NPU Alt-Text project, Bryan encountered a large and unclear stakeholder landscape, with partner teams unknown to him and insufficient clarity on the scope of work, causing confusion across the group. Task: Bryan needed to restore alignment among all involved parties and ensure the project could move forward efficiently despite the complexity. Action: Bryan took personal accountability, sought feedback from peers and stakeholders, and created a Loop component that listed all partner teams and their roles, serving as a single source of truth for alignment and communication. Result: The tool streamlined coordination across the project, and Bryan captured the learning that early stakeholder identification is critical, committing to apply this approach proactively in future projects.",
+    "competencies": [
+      "Stakeholder Management",
+      "Problem Solving",
+      "Growth Mindset"
+    ],
+    "sourceDoc": "Connect December 2024.txt",
+    "excerpt": "To mitigate this issue, I created a Loop component that listed all the partner teams and their roles. This served as a single source of truth for alignment and helped streamline communication and coordination."
+  },
+  {
+    "title": "Leading Activity Feed from Ideation to Development",
+    "text": "Situation: The OGX team identified an opportunity to introduce a new interface in core Office apps that could serve as an ideal surface for Copilot features. Task: Bryan was responsible for leading the development and rollout of an activity feed feature, driving it from ideation through to dogfood release. Action: Bryan managed the full lifecycle of the feature, from ideation to spec to development, coordinating the rollout and gaining insights throughout the process. Result: The activity feed was initiated into dogfood, positioned to deliver transformative value, and Bryan gained valuable learnings about consumer adoption and Copilot feature implementation.",
+    "competencies": [
+      "Product Management",
+      "Feature Development",
+      "AI and Copilot Strategy"
+    ],
+    "sourceDoc": "Connect December 2024.txt",
+    "excerpt": "Initiated dogfood for the activity feed, poised to deliver transformative value. This new interface in core office apps is ideal for implementing Copilot features. I managed this rollout from ideation to spec to development, gaining valuable insights."
+  },
+  {
+    "title": "Active Participation in ERGs and D&I Initiatives",
+    "text": "Situation: Microsoft expects employees to actively contribute to diversity and inclusion efforts both internally and in the broader community. Task: Bryan committed to practicing allyship, participating in Employee Resource Groups, and developing inclusive products and processes. Action: Bryan joined GLEAM, HOLA, and BAM, participated in at least 10 ERG events, joined the D&I committee for OGX, moderated an Intern Roundtable Session, connected with 10 team members on topics including cultural and racial backgrounds and mental health, and volunteered with a middle school in the Redmond area through the HOLA ERG. Result: Bryan contributed meaningfully to inclusivity in team processes, gathered and shared feedback that helped improve the intern experience, and helped promote diversity and inclusion with young students in the local community.",
+    "competencies": [
+      "Diversity and Inclusion",
+      "Allyship",
+      "Community Engagement"
+    ],
+    "sourceDoc": "Connect December 2024.txt",
+    "excerpt": "Joined GLEAM, HOLA, and BAM, and actively participated in at least 10 events, including round tables, coffee chats, community calls, and volunteering opportunities. These engagements allowed me to contribute my perspective and support others in the ERGs."
+  },
+  {
+    "title": "Orchestrating Feature Development as Spark Team PM",
+    "text": "Situation: As a new hire product manager on the Spark team within the Verticals Ecosystem, Bryan needed to establish himself in a complex product development environment. Task: He was responsible for orchestrating the development and refinement of features, requiring clear specifications and oversight of their execution. Action: Bryan proactively articulated clear specifications for verticals work, set a goal to write five specs, and contributed feedback to team spec reviews to support colleagues beyond his immediate responsibilities. Result: His manager recognized his growing contributions, specifically calling out his work driving meetings, summarizing outcomes, and digging in technically as signs of visible growth.",
+    "competencies": [
+      "Product Management",
+      "Cross-functional Collaboration",
+      "Technical Engagement"
+    ],
+    "sourceDoc": "Connect February 2024.txt",
+    "excerpt": "As the Spark team's feature product manager, I orchestrate the development and refinement of features, articulating clear specifications and overseeing their execution."
+  },
+  {
+    "title": "Driving OGX Accessibility Compliance Through Structured Triage",
+    "text": "Situation: OGX product areas required ongoing accessibility compliance monitoring and improvement to meet standards. Task: Bryan took on responsibility for improving accessibility standard conformance across the organization. Action: He hosted bi-weekly accessibility triage sessions, monitored product compliance scores diligently, addressed accessibility issues proactively, and published compliance documentation to support ongoing efforts. Result: His targets included driving OGX Accessibility Compliance grades to C for each end-of-month grade for Win32 and maintaining health scores at gold medal status, reflecting a structured and measurable approach to compliance.",
+    "competencies": [
+      "Accessibility",
+      "Program Management",
+      "Accountability"
+    ],
+    "sourceDoc": "Connect February 2024.txt",
+    "excerpt": "Improving accessibility standard conformance by hosting bi-weekly accessibility triage sessions. Monitoring product compliance scores diligently and addressing accessibility issues proactively."
+  },
+  {
+    "title": "Building Cross-Disciplinary Relationships Across OGX",
+    "text": "Situation: As a new FTE PM, Bryan needed to build meaningful working relationships across a large and diverse organization to be effective in his role. Task: He set a priority to understand individual roles and improve team relationships across PM, Design, and Dev disciplines. Action: Bryan committed to connecting with at least 15 colleagues from within OGX, maintaining consistent asynchronous and one-on-one communication, and actively participating in events to increase his knowledge and contributions. Result: His manager noted enthusiasm for his collaborative work and recognized him for driving meetings and summarizing work, indicating early success in building trust across the team.",
+    "competencies": [
+      "Relationship Building",
+      "Communication",
+      "Collaboration"
+    ],
+    "sourceDoc": "Connect February 2024.txt",
+    "excerpt": "Improve team relationships and understand individual roles by connecting with at least 15 colleagues across PM/Design/Dev disciplines from within OGX."
+  },
+  {
+    "title": "Structured Onboarding Through Learning and Resource Development",
+    "text": "Situation: Joining as a new FTE PM, Bryan faced the challenge of rapidly developing his product management skills and accessibility expertise in an unfamiliar environment. Task: He needed to build a foundation of knowledge to meet the expectations of his role and contribute meaningfully to the Verticals Team. Action: Bryan planned to complete at least two Reforge courses and six instructor-led Product Inclusion Academy courses, attend two sessions from the Aspire Program, and create an accessibility resources OWiki for Shared UX workflows by the end of April with revisions based on feedback by May. Result: His manager recognized his initiative and growth trajectory, noting he was digging in technically and expressed confidence in seeing him grow.",
+    "competencies": [
+      "Learning Agility",
+      "Self-Development",
+      "Knowledge Management"
+    ],
+    "sourceDoc": "Connect February 2024.txt",
+    "excerpt": "Complete at least two Reforge courses and six instructor-led Product Inclusion Academy Courses. Create an accessibility resources OWiki for Shared UX workflows by the end of April and revise based feedback contributed by May."
+  },
+  {
+    "title": "Activating Allyship and D&I Commitments in the Workplace",
+    "text": "Situation: Microsoft's cultural expectations require employees to actively contribute to a diverse and inclusive environment, and Bryan committed to this as a formal core priority. Task: He needed to define concrete actions that would demonstrate inclusive behavior, participation, and product practices. Action: Bryan committed to using inclusive language including pronouns and visual descriptions when presenting, educating others on allyship skills, participating as a member or ally in at least two ERGs with attendance at four events, serving as a panelist or organizer for at least two events by June, completing two optional D&I trainings by May, and using the accessibility checker when creating documents. Result: These commitments established a measurable and multi-dimensional approach to inclusion spanning personal conduct, community engagement, and product creation.",
+    "competencies": [
+      "Inclusion",
+      "Allyship",
+      "Accessibility"
+    ],
+    "sourceDoc": "Connect February 2024.txt",
+    "excerpt": "I will participate as a member or ally in at least 2 ERGs and will attend at least 4 events by June. I will participate as a panelist, organizer, or lead for at least 2 events by June."
+  },
+  {
+    "title": "WCAG 2.2 Compliance Leadership Across WXP Products",
+    "text": "Situation: WXP products needed to be brought into alignment with the updated WCAG 2.2 standard, and non-compliant experiences required creative resolution within a defined timeline. Task: Bryan was responsible for leading the alignment effort, finding solutions for non-compliant experiences, and ensuring timely resolution across the product surface. Action: He investigated requirements, assessed design feasibility, mapped dependencies across apps and platforms, and delivered a feature spec that the development team could use to code and bring to production. He also created documentation for accessibility workflows such as testing for target size on Win32. Result: The work resulted in improved compliance health, a gold accessibility cup designation for Win32, and a spec the dev team could act on directly, with manager feedback noting he 'did an excellent job in writing the feature spec for WCAG 2.2 requirements.'",
+    "competencies": [
+      "Technical Acumen",
+      "Planning and Delivery",
+      "Cross-functional Collaboration"
+    ],
+    "sourceDoc": "Connect May 2024.txt",
+    "excerpt": "Led the alignment of WXP products to comply with WCAG 2.2, finding creative solutions for non-compliant experiences and ensuring timely resolution. As a result also creating documentation for accessibility workflows like testing for target size on Win32."
+  },
+  {
+    "title": "Accessibility Hackathon Contribution Leading to Copilot Vision Assistant",
+    "text": "Situation: The organization was shifting toward a 'Copilot Everywhere' model and needed innovative ideas for making Copilot universally accessible. Task: Bryan participated in an accessibility-focused hackathon with the goal of contributing meaningful product ideas aligned to this strategic direction. Action: He contributed ideas for a universally accessible Copilot feature with an emphasis on multi-modal capabilities. Result: The hackathon contributions led directly to involvement in the Copilot 'Vision Assistant' efforts, extending Bryan's impact beyond the hackathon itself.",
+    "competencies": [
+      "Innovation",
+      "Strategic Thinking",
+      "Inclusive Design"
+    ],
+    "sourceDoc": "Connect May 2024.txt",
+    "excerpt": "Participated in an accessibility-focused hackathon, contributing ideas for a universally accessible Copilot feature with an emphasis on multi-modal capabilities as we shift to having 'Copilot Everywhere' which now led to contributions to Copilot 'Vision Assistant' efforts."
+  },
+  {
+    "title": "Building AT User Relationships to Surface Unmet Accessibility Needs",
+    "text": "Situation: Existing responsibilities did not include direct engagement with assistive technology users, leaving a potential gap in understanding real-world accessibility pain points. Task: Bryan took the initiative to build relationships outside of his current responsibilities to gather a unique perspective on product improvements. Action: He established relationships with 2 AT users within Microsoft and gathered their feedback on areas needing improvement, including the more colors dialog. Result: The feedback from these relationships was actioned on, resulting in concrete product improvement suggestions being surfaced and addressed.",
+    "competencies": [
+      "Customer Focus",
+      "Initiative",
+      "Stakeholder Engagement"
+    ],
+    "sourceDoc": "Connect May 2024.txt",
+    "excerpt": "Built relationships with 2 AT users within Microsoft, outside of current responsibilities to get a unique perspective on improvements needed that led to suggestions actioned on like the more colors dialog that AT users feel is lacking."
+  },
+  {
+    "title": "Supporting Apex Team WCAG 2.2 Spec Completion Within Timeline",
+    "text": "Situation: The Apex team needed accessibility compliance support to complete their WCAG 2.2 alignment work within a defined timeline goal. Task: Bryan took on a coaching and support role for the Apex team, going beyond his core responsibilities to ensure a coherent solution was delivered across platforms. Action: He completed the spec for WCAG 2.2 alignment for the Apex team and provided ongoing coaching and assistance to drive compliance to completion. Result: The work was completed within the timeline goal, and the manager noted he 'went the extra mile to help the APEX team define their work and ensure there is a coherent solution across the platforms.'",
+    "competencies": [
+      "Collaboration",
+      "Mentoring",
+      "Delivery Excellence"
+    ],
+    "sourceDoc": "Connect May 2024.txt",
+    "excerpt": "Coached and provided support in Apex accessibility, completing spec for WCAG 2.2 alignment and assisting with Apex compliance to ensure completion within timeline goal."
+  },
+  {
+    "title": "Onboarding and Building Foundational Accessibility Expertise",
+    "text": "Situation: As a new FTE PM joining the OGX team approximately six months prior to this review, Bryan needed to build deep accessibility knowledge quickly to contribute meaningfully to a specialized team. Task: He set out to ramp up his expertise and become a credible resource for accessibility guidance across OGX partners. Action: He completed 6 accessibility training courses hosted by E+D, attended 3 learning and development sessions with Aspire, regularly used OS screen readers across his devices, and created shareable documentation to support other newer PMs. Result: He became an acting SME for accessibility compliance around OGX, with his manager noting he 'ramped up quickly in the accessibility workstreams' and made 'significant contributions to the team' within six months.",
+    "competencies": [
+      "Learning Agility",
+      "Knowledge Sharing",
+      "Growth Mindset"
+    ],
+    "sourceDoc": "Connect May 2024.txt",
+    "excerpt": "Completed 6 accessibility training courses hosted by E+D, bolstering my ability to assist partners with accessibility issues."
+  },
+  {
+    "title": "Cross-Discipline Relationship Building to Enable Collaboration",
+    "text": "Situation: As a new PM on the OGX team, Bryan needed to establish a network across disciplines to facilitate cross-team awareness and collaborative work. Task: He prioritized building relationships broadly across PM, design, and development functions within OGX. Action: He fostered relationships with over 15 colleagues across PM, Design, and Dev disciplines through lunches, 1:1s, and workflow discussions. Result: These relationships enabled cross-team collaboration and awareness of other efforts, contributing to a culture of connection and informed decision-making across the organization.",
+    "competencies": [
+      "Relationship Building",
+      "Collaboration",
+      "Communication"
+    ],
+    "sourceDoc": "Connect May 2024.txt",
+    "excerpt": "Fostered relationships with over 15 colleagues across PM/Design/Dev disciplines within OGX through lunches, 1:1s, and workflow discussions that enabled cross team collaboration and awareness of other efforts."
+  },
+  {
+    "title": "Shipping Activity Feed for iOS and Expanding Accessibility Features",
+    "text": "Situation: The OGX team needed to deliver multiple features across a complex cross-org environment involving ODSP, ASG, WCR, Empower, and OAI during the Dec 2024 to May 2025 reflection period. Task: Bryan was responsible for owning and shipping features while publishing clear specifications to enable coordinated cross-org delivery. Action: He owned and shipped 4 features and published 6 specs, with a notable delivery of Activity Feed for iOS to production. He also contributed to the Image Description on Canvas for WXP feature and Keyboard Shortcuts efforts that originated from FHL work. Result: The Activity Feed for iOS improved WXP collaboration signal discoverability and engagement, while the image and keyboard efforts expanded image accessibility and keyboard parity across Office platforms.",
+    "competencies": [
+      "Feature Delivery",
+      "Cross-Org Collaboration",
+      "Specification Writing",
+      "Accessibility"
+    ],
+    "sourceDoc": "Connect May 2025.txt",
+    "excerpt": "I owned and shipped 4 features and published 6 specs, enabling cross-org delivery with ODSP, ASG, WCR, Empower, and OAI. Notably, I shipped Activity Feed for iOS to production, which improved WXP collaboration signal discoverability and engagement."
+  },
+  {
+    "title": "Boosting Alt Text ACRUE Scores Through NPU Integration",
+    "text": "Situation: The Alt Text feature needed improvement in accuracy and alignment with a COGS reduction strategy, but the integration path across NPU and cloud systems was ambiguous with no clear ownership or funding committed across teams. Task: Bryan led the integration of NPU into Alt Text while also serving as the Product Accessibility Image GenAI SME, responsible for model strategy, evaluation, and technical guidance. Action: He led the NPU integration effort, curated a 700-image evaluation dataset categorized by HVS that was adopted by 4 teams, secured CELA approvals for 50K images, and evangelized prompt optimization and evaluation standards across teams. Result: ACRUE scores improved from 30% to 55% with NPU and further to 80% in the cloud, laying the foundation for broader GenAI adoption in Office and enabling scalable testing and training pipelines.",
+    "competencies": [
+      "Technical Leadership",
+      "GenAI Product Management",
+      "Cross-Team Alignment",
+      "Evaluation Strategy"
+    ],
+    "sourceDoc": "Connect May 2025.txt",
+    "excerpt": "I led the integration of NPU into Alt Text (Integration Pending), resulting in a boost in ACRUE scores from 30% → 55% (NPU) → 80% (Cloud). This work aligned with our COGS reduction strategy and laid the foundation for broader GenAI adoption in Office."
+  },
+  {
+    "title": "Sustaining C-Grade Accessibility Compliance for Over 12 Months",
+    "text": "Situation: The OGX team was responsible for maintaining accessibility compliance across two EAA products, with a success measure of driving OGX Accessibility Compliance grades to C for each end-of-month grade for Win32. Task: Bryan served as the OGX Accessibility Compliance SME, acting as the primary responsible party for monitoring compliance and communicating with Dev and PM stakeholders. Action: He diligently monitored product compliance scores, triaged 99 accessibility bugs in FY25 year-to-date, and provided targeted feedback and training to partners and the OGX team to improve the issue resolution process. Result: He maintained C-grade accessibility compliance for over 12 months across two EAA products, and the products he owned received the A11y Cup for 7 or more consecutive months, demonstrating sustained leadership in accessibility culture.",
+    "competencies": [
+      "Compliance Management",
+      "Accessibility",
+      "Stakeholder Communication",
+      "Bug Triage"
+    ],
+    "sourceDoc": "Connect May 2025.txt",
+    "excerpt": "I maintained C-grade accessibility compliance for over 12 months across two EAA products, ensuring long-term accessibility health and stability. Owning a11y products received A11y Cup for 7+ consecutive months, demonstrating sustained leadership in accessibility culture and execution."
+  },
+  {
+    "title": "Ensuring Copilot UI/UX Coherence Across Office Apps",
+    "text": "Situation: Multiple Office app teams were rolling out a new Copilot Design Language, creating risk of incoherence across Copilot UI/UX entry points, including issues like Excel Copilot's context menus that threatened launch quality. Task: Bryan acted as a product integration manager to ensure coherence across Copilot entry points and visual refresh workstreams, without direct spec ownership over the teams involved. Action: He tracked adherence to Copilot entry point guidelines, surfaced risks early, resolved the Excel Copilot context menu issue ahead of launch, and partnered with app teams to align with design principles even during design team pauses. Result: He maintained momentum and prevented incoherence before rollout, filling critical gaps in design and engineering coordination to ensure a consistent and high-quality user experience across Copilot surfaces.",
+    "competencies": [
+      "Product Integration",
+      "Cross-Functional Coordination",
+      "Risk Management",
+      "Design Coherence"
+    ],
+    "sourceDoc": "Connect May 2025.txt",
+    "excerpt": "I tracked adherence to Copilot entry point guidelines, surfaced risks early, and resolved issues like Excel Copilot's context menus ahead of launch. I operated as a general contractor across teams without direct spec ownership, filling critical gaps in design and engineering coordination."
+  },
+  {
+    "title": "Remediating Security Vulnerabilities in the Alt Text Evaluation Pipeline",
+    "text": "Situation: The Alt Text GenAI evaluation pipeline running in Azure had security flags related to service configurations that needed to be addressed to meet Microsoft's Secure Foundation Initiative standards. Task: Bryan was responsible for identifying and resolving these security issues to ensure the infrastructure could be trusted for scalable GenAI model evaluation. Action: He identified and addressed the security flags related to service configurations, brought all services into full compliance with SFI standards, and also led OSSE FHL efforts that encouraged security-focused hacks across the team to raise awareness. Result: The GenAI evaluation infrastructure met internal compliance standards and was enabled for safe and scalable use, while the FHL efforts helped embed security thinking into the broader engineering culture.",
+    "competencies": [
+      "Security Compliance",
+      "Infrastructure Remediation",
+      "Responsible AI",
+      "Engineering Culture"
+    ],
+    "sourceDoc": "Connect May 2025.txt",
+    "excerpt": "I identified and addressed security flags related to service configurations. I ensured that all services used in the cloud were brought into full compliance with Microsoft's Secure Foundation Initiative (SFI) standards, enabling the safe and scalable evaluation of GenAI models."
+  },
+  {
+    "title": "Building AI Enablement Infrastructure for Web Shared",
+    "text": "Situation: The Web Shared team had scattered AI experimentation with no consistent workflows or reusable tools for PMs and engineers. Task: Bryan needed to move the team from ad hoc AI use to repeatable, scalable practices that could serve multiple disciplines and cross team lines. Action: He built the WebShared Toolbox and AI plugin marketplace, created Agentic Coding in 1JS material, ran recurring office hours, developed prototype-hosting guidance, and established PM and engineering workflow support using Claude Code and Copilot CLI. He presented Agentic Coding in 1JS to a 300-plus audience and demoed PM and engineering automation across WS, OGX, and OSSE. Result: Adoption crossed team boundaries, with Word partners and teams across E+D reusing work from the toolbox. Peers including Matt, Madhavi, Austin, Kimberly, and Anusha credited him with pioneering the AI initiative, and his manager noted he exceeded expectations by operationalizing usage patterns into a skills library and building an org-level marketplace.",
+    "competencies": [
+      "AI Enablement",
+      "Knowledge Sharing",
+      "Product Thinking",
+      "Cross-team Collaboration"
+    ],
+    "sourceDoc": "Connect May 2026.txt",
+    "excerpt": "You exceeded this by operationalizing usage patterns into a skills library and went much further with it by providing a org level marketplace to discover and promote new skills enabling scale at the org level"
+  },
+  {
+    "title": "Closing the Gap Between Product Intent and App Home Quality as a Code-Shipping PM",
+    "text": "Situation: App Home had a gap between product intent and actual product quality, with backlog friction slowing progress on accessibility, layout, and responsiveness issues. Task: Bryan needed to improve App Home quality and measurability while continuing to fulfill his PM responsibilities around framing, alignment, and tradeoffs. Action: He authored 14 PRs in 1JS and Midgard and 66 GitHub PRs across toolbox and prototype repos, covering production build optimization, MRU and search styling, responsive layout, forced colors, aria labels, contrast, thumbnails, Create layout, and AppHome-Web auth and router work. He also established App Home scorecard metrics and supported AI prototype work for the team. Result: Madhavi noted his hands-on development is rarely seen in PMs and called out his accessibility template PR support. His manager confirmed he exceeded expectations by leveraging AI to make code changes directly and in doing so built a platform that enabled the broader team to contribute similarly.",
+    "competencies": [
+      "Technical Execution",
+      "Product Quality",
+      "Accessibility",
+      "Engineering Partnership"
+    ],
+    "sourceDoc": "Connect May 2026.txt",
+    "excerpt": "You exceeded this expectation by leveraging AI to make the code changes yourself and in the process of doing so built a platform that enabled the broader team to contribute in a similar manner."
+  },
+  {
+    "title": "Transforming Project Lightspeed from Broad Ambition to Accountable Execution",
+    "text": "Situation: Project Lightspeed had a broad goal of reducing JavaScript but lacked structured workstreams, clear ownership, or validated performance claims. Task: Bryan needed to convert the ambition into partner-readable execution with owners, risks, ETAs, and evidence gates across multiple host teams. Action: He created an opportunity analysis and proposal, investment map, validation plan, and alignment status and PR-prep loop. He drove cadence across Lightspeed syncs plus FC alignment, shiproom, and architecture deep dives, aligning Excel App Init and JS Deferral across Word, Excel, PowerPoint, ODSP, and App Home. He also delivered Web and Apps Performance Symposium content on Copilot CLI and PAS benchmarking and shipped a public WebAppPerformance marketplace with reusable tooling. Result: His manager highlighted that his AI-assisted codebase analysis to identify reducible JS patterns opened the possibility of magnitude-order acceleration compared to prior approaches that required several developer months for marginal gains.",
+    "competencies": [
+      "Program Management",
+      "Performance Engineering",
+      "Stakeholder Alignment",
+      "AI Application"
+    ],
+    "sourceDoc": "Connect May 2026.txt",
+    "excerpt": "You exceeded this expectation by using AI to analyze our vast codebase and identify patterns of JS code that could be reduced along with an assessment of risk of doing this automatically with AI."
+  },
+  {
+    "title": "Operationalizing Privacy Governance for AI, Telemetry, and Customer Feedback",
+    "text": "Situation: After taking on Web Shared Privacy Driver ownership in March, Bryan inherited a privacy function that was reactive and manually intensive rather than systematic. Task: He needed to make privacy review, triage, and AI and feedback governance operational and repeatable across active DPIAs, telemetry events, and connected experiences. Action: He created workflows with ADO intake, aggregate-first Kusto checks, two-pass payload audits, sanitized comments, and human-in-the-loop owner review. He used these to review 20 recent Privacy Guard bugs, triage active issues, and scan unknown WAC candidates. He also mapped 6 attack surfaces, validated 5 out of 5 EUPI adversarial prompts blocked at the LLM and template layer, and created OCV AI guidance so partners could use feedback and telemetry without raw verbatims or unsupported AI paths. Result: OPG Privacy approved OTTO on March 31 with Bryan named Privacy Driver, and ServiceTree listed him across governance roles, making privacy work operational rather than dependent on heroic individual effort.",
+    "competencies": [
+      "Privacy Governance",
+      "Risk Management",
+      "Security",
+      "Systems Thinking"
+    ],
+    "sourceDoc": "Connect May 2026.txt",
+    "excerpt": "After taking Web Shared Privacy Driver ownership in March, I made privacy work operational, not heroic: 3 active DPIAs reviewed, Connected Experiences and diagnostic-event scope documented, Shield/PrivacyGuard cadence set, and privacy review paths clarified for AI, OCV, telemetry, and connected UX."
+  },
+  {
+    "title": "Learning to Pair Speed with Governance After OTTO Setback",
+    "text": "Situation: OTTO's prototype momentum moved faster than the governance processes that were still formalizing around privacy, export, and DLP reviews, resulting in a rejected review request. Task: Bryan needed to course-correct by bringing OTTO into compliance while also extracting a repeatable lesson for future high-velocity AI work. Action: He paused broader feedback rollout until privacy and security reviews and ServiceTree attachment were in place, brought OTTO through Security Office Hours, updated artifacts and the DFD, submitted EC-9043, and kept rollout claims gated. He then reused this pattern on Lightspeed with PR-prep and status loops and least-privilege Reader requests. Result: OTTO advanced through the proper governance path and Bryan codified the principle that for AI services, governance is product definition rather than launch paperwork, applying this approach proactively to subsequent workstreams.",
+    "competencies": [
+      "Risk Management",
+      "Judgment",
+      "Learning Agility",
+      "Governance"
+    ],
+    "sourceDoc": "Connect May 2026.txt",
+    "excerpt": "For AI services, governance is product definition, not launch paperwork. Scaling requires role clarity, coalition ownership, decision records, and risk boundaries before adoption."
+  },
+  {
+    "title": "GenAI Model Strategy Drives ACRUE Score Improvement for Image Alt Text",
+    "text": "Situation: The OGX OSSE team needed to improve the quality of GenAI-driven image accessibility experiences while managing cost constraints. Task: Bryan took on an Image GenAI SME role, responsible for curating model strategy and evaluation for image accessibility features. Action: He evaluated models and aligned the strategy to a COGS reduction approach, leveraging cross-org tools like TPrompt and Copilot Eval Platform to improve image accessibility quality and keep costs low. Result: ACRUE scores improved from 30% to 55% on NPU and then to 80% on Cloud, all while remaining aligned to the COGS reduction strategy.",
+    "competencies": [
+      "Strategic Thinking",
+      "AI/ML Evaluation",
+      "Cost Optimization",
+      "Subject Matter Expertise"
+    ],
+    "sourceDoc": "FY25 People Card.txt",
+    "excerpt": "Curated GenAI model strategy and evaluation as an Image GenAI SME role→ Boosted ACRUE scores from 30% → 55% (NPU) → 80% (Cloud) while aligned to COGS reduction strategy."
+  },
+  {
+    "title": "700-Image Evaluation Dataset Adopted Across Four Partner Teams",
+    "text": "Situation: Multiple teams across the organization lacked a consistent foundation for GenAI quality testing of image accessibility features. Task: Bryan needed to build a reusable evaluation resource that could support cross-org partners. Action: He curated a 700-image evaluation dataset categorized by HVS, and separately secured CELA approvals for the use of 50K images in testing, training, and evaluation. Result: The dataset was adopted by four teams including ASG, WCR, Empower, and Office, enabling consistent GenAI quality testing and unlocking scalable testing foundational to evergreen quality investments.",
+    "competencies": [
+      "Cross-org Collaboration",
+      "Data Curation",
+      "Compliance",
+      "Enablement"
+    ],
+    "sourceDoc": "FY25 People Card.txt",
+    "excerpt": "Curated a 700-image evaluation dataset categorized by HVS → Enabled consistent GenAI quality testing now adopted by 4 teams (ASG, WCR, Empower, Office)."
+  },
+  {
+    "title": "RAI Process Completion Secures Rollout Approvals for Three Features",
+    "text": "Situation: Engineering teams working on features like Backstage, Alt Text, and Image Q&A needed to navigate Responsible AI processes to reach production. Task: Bryan was responsible for providing RAI guidance and completing required compliance processes including impact assessments, release reviews, and DSB submissions. Action: He provided GenAI technical context and RAI guidance that unblocked engineering teams on platform integration, tool usage, prompting, and evaluation, and completed the full RAI process for each feature. Result: Rollout approvals were secured for three features, removing blockers and enabling the teams to ship.",
+    "competencies": [
+      "Responsible AI",
+      "Compliance",
+      "Cross-team Enablement",
+      "Technical Leadership"
+    ],
+    "sourceDoc": "FY25 People Card.txt",
+    "excerpt": "Completed RAI processes (impact assessments, release reviews, DSB) for features → Secured rollout approvals for 3 features."
+  },
+  {
+    "title": "Sustained Accessibility Compliance and Bug Triage Over 12 Months",
+    "text": "Situation: The OGX OSSE team needed to maintain long-term accessibility health across two EAA products over an extended period. Task: Bryan was responsible for accessibility compliance, bug triage, and building team capability around accessibility practices. Action: He maintained C-grade compliance for 12 or more months, directly triaged 99 accessibility bugs in FY25, and provided targeted feedback and training to partners and the OGX team to improve the issue resolution process. Result: Long-term accessibility health was ensured across both products, the engineering backlog was reduced, and Bryan held the A11y Cup for seven or more months, reflecting sustained leadership in team accessibility culture.",
+    "competencies": [
+      "Accessibility",
+      "Quality",
+      "Coaching",
+      "Operational Excellence"
+    ],
+    "sourceDoc": "FY25 People Card.txt",
+    "excerpt": "Maintained C-grade compliance for 12+ months → Ensured long-term accessibility health across two EAA products. Held A11y Cup for 7+ months → Demonstrated sustained leadership in team accessibility culture contributions & execution."
+  },
+  {
+    "title": "Early Accrue Metrics Adoption Enables Data-Backed Validation of Accessibility Investments",
+    "text": "Situation: Newly released Accrue metrics became available in late CY24, and the team needed a way to validate the user value of GenAI-driven Alt Text experiences with quantitative data. Task: Bryan acted as an early adopter and applied these metrics to evaluate accessibility experiences before broad adoption across the org. Action: He applied the Accrue metrics to the GenAI-driven Alt Text experiences and partnered with UX Research to interpret the early metric signals alongside qualitative user feedback. Result: The work enabled data-backed validation of user value and confirmed alignment between quantitative insights and qualitative feedback, informing future accessibility investments.",
+    "competencies": [
+      "Data-Driven Decision Making",
+      "Research Partnership",
+      "Accessibility",
+      "Early Adoption"
+    ],
+    "sourceDoc": "FY25 People Card.txt",
+    "excerpt": "Early adopter and applied newly released Accrue metrics (late CY24) to evaluate GenAI-driven Alt Text experiences → Enabled data-backed validation of user value and informed future accessibility investments."
+  },
+  {
+    "title": "Copilot Coherence Oversight Prevents Incoherence Before Rollout",
+    "text": "Situation: Multiple products were at risk of shipping Copilot entry points inconsistently, which could create fragmented user experiences across the portfolio. Task: Bryan took on the role of tracking adherence to Copilot entry point guidelines across multiple products and ensuring alignment before rollout. Action: He proactively partnered with app teams to surface risks early, resolving specific issues such as the Excel Copilot context menu problem, and orchestrated work across teams as a general contractor to maintain alignment with design principles despite resourcing gaps. Result: Risks were surfaced early, issues were resolved before rollout, and consistent user experiences were enabled across the products.",
+    "competencies": [
+      "Product Quality",
+      "Cross-org Coordination",
+      "Proactive Risk Management",
+      "Design Consistency"
+    ],
+    "sourceDoc": "FY25 People Card.txt",
+    "excerpt": "Partnered proactively with app teams to prevent incoherence before rollout → Resolved issues like Excel Copilot's context menu."
+  },
+  {
+    "title": "Global Commanding Dashboard Discovery",
+    "text": "Situation: The OPG organization lacked a comprehensive global commanding dashboard, and existing insight tools had notable shortcomings. Task: Bryan was responsible for investigating and designing a solution by gathering information across multiple teams and platforms. Action: He conducted 12 information gathering sessions spanning multiple teams and platforms, consulted with partner teams including DIG to resolve data problems, and collaborated with teams instrumenting existing solutions to improve the commanding data insights landscape. Result: The gathered insights informed a comprehensive Why Pager that emphasized the need for improvement, and the manager noted the interviews produced valuable information with notes and takeaways kept well organized for use across the project.",
+    "competencies": [
+      "Discovery and Research",
+      "Stakeholder Engagement",
+      "Product Strategy"
+    ],
+    "sourceDoc": "Internship Connect July 2023.txt",
+    "excerpt": "Conducted 12 information gathering sessions to understand commanding insight needs across OPG, spanning multiple teams and platforms."
+  },
+  {
+    "title": "Spec Development and MVP Planning for Global Commanding Dashboard",
+    "text": "Situation: After identifying limitations in the commanding data insights landscape, Bryan needed to translate findings into an actionable implementation plan. Task: He was responsible for preparing a formal spec and defining the minimum viable product for the Global Commanding Dashboard within the constraints of the internship period. Action: He prepared a Why Pager to understand MVP needs, wrote a detailed spec, and iterated through improvements using stakeholder feedback while balancing what was feasible within the internship timeline. Result: The manager noted the spec was very detailed, laying out top priorities for the short term as well as an ambitious long-term roadmap, and it was signed off as the basis for implementation work.",
+    "competencies": [
+      "Technical Writing",
+      "Product Planning",
+      "Stakeholder Management"
+    ],
+    "sourceDoc": "Internship Connect July 2023.txt",
+    "excerpt": "Your spec was very detailed and laid out the top priorities for the short term as well as an ambitious long-term roadmap."
+  },
+  {
+    "title": "Interns Give Back Community Program",
+    "text": "Situation: Bryan recognized an opportunity to foster community engagement and giving among Microsoft interns and full-time employees during the summer internship period. Task: He co-created and led a program called Interns Give Back that would unite interns and FTEs in volunteering for local communities while leveraging Microsoft's Giving Program. Action: He created and led the program with other interns, organized 2 events over the summer, and coordinated participation across a diverse group addressing social inequalities in marginalized communities. Result: Both events reached capacity within 1 hour of posting, bringing together 24 interns and FTEs, collectively logging 28 hours of volunteering equating to $700 of matched time via Microsoft's Giving Program.",
+    "competencies": [
+      "Leadership",
+      "Diversity and Inclusion",
+      "Community Engagement"
+    ],
+    "sourceDoc": "Internship Connect July 2023.txt",
+    "excerpt": "Held 2 events through the Summer bringing together 24 Interns and FTEs. Both events reached capacity within 1 hour of posting! Collectively volunteered 28 hours equating to $700 of matched time via Microsoft's Giving Program."
+  },
+  {
+    "title": "Improving Public Speaking and Storytelling Skills",
+    "text": "Situation: Following his initial comparative analysis presentation, Bryan received feedback indicating his public speaking and storytelling skills needed development. Task: He needed to actively work on PM soft skills, particularly the ability to communicate complex information to diverse audiences. Action: He observed experienced PMs and engineering professionals, practiced soft skills through ERG event discussions, participated in a CXE Open Mic event, and adopted a storytelling mindset in daily tasks. Result: The manager acknowledged noticeable improvement over the course of the internship, stating that Bryan had already shown progress on storytelling and encouraged him to continue seeking out speaking opportunities.",
+    "competencies": [
+      "Communication",
+      "Growth Mindset",
+      "Presentation Skills"
+    ],
+    "sourceDoc": "Internship Connect July 2023.txt",
+    "excerpt": "You've already shown improvement on this over the course of your internship, but it really is a superpower the better you get at it."
+  },
+  {
+    "title": "Technical Writing Development for PM Deliverables",
+    "text": "Situation: During the early stages of writing the spec for the Global Commanding Dashboard, Bryan recognized he lacked prior experience in creating clear, concise, and detailed technical content. Task: He needed to improve his technical writing skills to produce a spec that would meet stakeholder expectations and serve as a basis for implementation. Action: He sought guidance from CXE and OSE resources, spec guidelines, and his manager, reviewed old specs within the team, and applied continuous feedback to refine his writing through multiple iterations. Result: He produced a well-received spec that the manager described as very detailed with a clear short-term priority list and long-term roadmap, demonstrating meaningful growth in technical writing over the internship period.",
+    "competencies": [
+      "Technical Writing",
+      "Continuous Learning",
+      "Self-Improvement"
+    ],
+    "sourceDoc": "Internship Connect July 2023.txt",
+    "excerpt": "Prepared a Spec for the GCD work to be the basis for the implementation work and identified areas of improvement based on feedback from involved stakeholders."
+  },
+  {
+    "title": "Gathering Insights for the Global Commanding Dashboard",
+    "text": "During the May to June 2023 reflection period, Bryan was tasked with investigating and designing a Global Commanding Dashboard for OPG. He conducted 12 information gathering sessions across multiple teams and platforms to understand commanding insight needs. Through this process, he evaluated user needs, identified shortcomings with existing tools, and translated his findings into a comprehensive Why Pager that emphasized the need for improvement. His manager noted that with each interview Bryan improved at communicating objectives and pressing on follow-up questions to get better insights.",
+    "competencies": [
+      "Customer Focus",
+      "Research and Discovery",
+      "Communication"
+    ],
+    "sourceDoc": "Internship Connect June 2023.txt",
+    "excerpt": "Conducted 12 information gathering sessions to understand commanding insight needs across OPG, spanning multiple teams and platforms."
+  },
+  {
+    "title": "Translating Research into a Why Pager MVP Definition",
+    "text": "After completing his information gathering sessions, Bryan was responsible for turning those findings into a concrete product direction. Through the preparation of the Why Pager, he gained a thorough understanding of the limitations of existing tools and determined the minimum viable product implementation needs. His manager acknowledged that Bryan made substantial improvements to the Why Pager since its first draft, demonstrating his ability to iterate and respond to feedback over multiple rounds of review.",
+    "competencies": [
+      "Product Thinking",
+      "Written Communication",
+      "Iteration"
+    ],
+    "sourceDoc": "Internship Connect June 2023.txt",
+    "excerpt": "Through the preparation of the Why Pager, I gained a thorough understanding of limitations and determined the minimum viable product (MVP) implementation needs."
+  },
+  {
+    "title": "Learning from a Feedback Timing Mistake on the Introductory Project",
+    "text": "Early in his internship, Bryan was assigned an introductory project comparing the M365 productivity suite to competitors and creating a deck highlighting the differences. He sought feedback from his mentor, manager, and experienced PMs, but waited too long to share his work because he wanted to feel comfortable with an unreviewed final version first. Reflecting on this setback, he recognized that sharing initial iterations earlier allows for continuous improvement from the start. As a result, he actively worked on becoming more comfortable seeking feedback early and incorporating it into his work throughout the rest of the internship.",
+    "competencies": [
+      "Growth Mindset",
+      "Feedback Seeking",
+      "Self-Awareness"
+    ],
+    "sourceDoc": "Internship Connect June 2023.txt",
+    "excerpt": "I made the mistake of waiting too long to share my work, wanting to feel comfortable with an unreviewed final version before seeking their input."
+  },
+  {
+    "title": "Expanding Knowledge Through AI and D&I Learning Events",
+    "text": "As part of his goal to be a good PM and contribute to the business, Bryan identified opportunities to broaden his subject matter knowledge beyond his core project work. He attended 3 AI Learning workshops to increase his knowledge of AI and its applications within the team, and also attended three events organized by two separate employee resource groups to engage with diverse communities. He additionally completed an optional Accessibility training, enabling him to apply inclusive design principles to the content he creates. His manager recognized this behavior as demonstrating great intellectual curiosity.",
+    "competencies": [
+      "Continuous Learning",
+      "Diversity and Inclusion",
+      "Intellectual Curiosity"
+    ],
+    "sourceDoc": "Internship Connect June 2023.txt",
+    "excerpt": "Attended 3 AI Learning workshops to increase subject knowledge and applications within the team."
+  },
+  {
+    "title": "Fostering Team Relationships Through Regular One on One Meetings",
+    "text": "Alongside his project responsibilities, Bryan took on the task of building a supportive team environment during his internship. He conducted regular weekly one on one meetings with team members to establish trust and create a supportive environment. He also encouraged inclusive language use within groups and fostered ally participation in employee resource groups by encouraging attendance and creating a welcoming space. His manager noted that these efforts were reflected in his ongoing commitment to the success of others on the team.",
+    "competencies": [
+      "Relationship Building",
+      "Inclusion",
+      "Collaboration"
+    ],
+    "sourceDoc": "Internship Connect June 2023.txt",
+    "excerpt": "Conducted regular weekly 1:1 meetings with team members to establish trust and create a supportive environment."
+  },
+  {
+    "title": "Stakeholder Investigation for Global Commanding Dashboard",
+    "text": "Situation: Bryan was assigned as a Product Manager intern with a primary project to build a Global Commanding Dashboard, a new initiative with no existing design or requirements. Task: He needed to meet with key stakeholders to understand their use case scenarios and data needs, then translate those findings into a prioritized set of goals. Action: Bryan engaged key stakeholders directly to gather requirements and leveraged those learnings to define and prioritize project goals. Result: The prioritized set of goals was agreed upon by key stakeholders, providing a validated foundation for the project spec and subsequent implementation work.",
+    "competencies": [
+      "Stakeholder Management",
+      "Requirements Gathering",
+      "Product Discovery"
+    ],
+    "sourceDoc": "Internship Connect May 2023.txt",
+    "excerpt": "Meet with Key Stakeholders to understand their use case scenarios and data needs. Based on the investigation leverage learnings to create a priority set of goals for this project."
+  },
+  {
+    "title": "Writing and Presenting the Dashboard Project Spec",
+    "text": "Situation: After completing stakeholder research for the Global Commanding Dashboard, Bryan needed to formalize the findings into a structured product specification. Task: He was responsible for writing a full spec and presenting it to key stakeholders for sign-off. Action: Bryan synthesized the stakeholder input and prioritized goals into a comprehensive spec document and presented it to the relevant parties. Result: The spec was signed off by key stakeholders, enabling the project to move into the implementation planning phase.",
+    "competencies": [
+      "Technical Writing",
+      "Communication",
+      "Product Management"
+    ],
+    "sourceDoc": "Internship Connect May 2023.txt",
+    "excerpt": "Write and present a full Spec of this project to key stakeholders. Spec is signed off by key stakeholders."
+  },
+  {
+    "title": "Creating an Incremental Implementation Plan for the Dashboard",
+    "text": "Situation: With a signed-off spec in hand, the project needed a structured plan to move from design to delivery within the internship timeline. Task: Bryan was responsible for creating an implementation plan that delivered incremental user value at each milestone. Action: He used the information from the spec to sequence milestones in alignment with the prioritized goals, then began implementing necessary datasets and visualizations. Result: The ordering of the implementation plan matched the prioritized goal list from the spec, and progress was tracked by degree of completion by the end of the internship period.",
+    "competencies": [
+      "Project Planning",
+      "Incremental Delivery",
+      "Technical Execution"
+    ],
+    "sourceDoc": "Internship Connect May 2023.txt",
+    "excerpt": "Use information from spec to create an implementation plan that delivers incremental user value with each milestone. Ordering of the implementation plan matches the prioritized list of goals from the spec."
+  },
+  {
+    "title": "Contributing to Team Culture and Business of Office",
+    "text": "Situation: Beyond his core project, Bryan sought to be an active contributor to the broader team environment during his internship. Task: He committed to evangelizing good practices, sharing knowledge of new tools, offering feedback, and participating in projects aimed at improving team culture and customer focus. Action: Bryan actively participated in meetings and events, shared his experience with new tools, provided feedback to colleagues, and engaged in auxiliary projects related to being customer driven. Result: Success for this priority was measured by the quality and quantity of feedback received from colleagues and by maintaining constant communication with team members through one-on-ones and continuous support.",
+    "competencies": [
+      "Collaboration",
+      "Knowledge Sharing",
+      "Team Culture"
+    ],
+    "sourceDoc": "Internship Connect May 2023.txt",
+    "excerpt": "Evangelize and exemplify good practices such as sharing my experience with new tools, offering feedback, and contributing when possible."
+  },
+  {
+    "title": "Committing to Diversity and Inclusion Practices",
+    "text": "Situation: Microsoft requires every employee, including interns, to actively participate in creating a diverse and inclusive culture. Task: Bryan committed to multiple D&I focus areas, including completing optional D&I learning, developing inclusive products and content, and participating in Employee Resource Groups. Action: He planned to apply accessibility checkers when creating documents, use inclusive language including pronouns and visual descriptions in presentations, participate as a member or ally in at least two ERGs, and attend at least four ERG events during the internship. Result: Success was defined by completing at least one optional D&I learning, consistently applying inclusive practices to his work, and meeting the ERG participation goals throughout the internship period.",
+    "competencies": [
+      "Diversity and Inclusion",
+      "Allyship",
+      "Accessible Design"
+    ],
+    "sourceDoc": "Internship Connect May 2023.txt",
+    "excerpt": "I will participate as a member or ally in at least 2 ERGs and will attend at least 4 events throughout the course of my internship."
+  }
+]

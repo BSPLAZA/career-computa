@@ -1,0 +1,12 @@
+TEST FIXTURE ONLY. Not demo-path data. Used by the smoke test to exercise JD relevance selection.
+
+Senior Product Manager, AI Agents
+
+We are looking for a product manager to own our AI agent platform. You will ship
+LLM-powered features to production, design evaluation pipelines (LLM-as-judge),
+and build guardrails and human-in-the-loop approval workflows. You will work with
+TypeScript and Python engineers, define observability and telemetry for agent
+runs, and run A/B experiments to validate impact. Experience with multi-agent
+orchestration, Model Context Protocol (MCP), CI/CD (GitHub Actions), and shipping
+internal tooling at scale is a strong plus. You measure quality, attribute every
+answer to a source, and care about safe-by-default access to production data.

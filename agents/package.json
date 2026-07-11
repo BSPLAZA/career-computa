@@ -1,0 +1,13 @@
+{
+  "name": "career-agency-agents",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Pipeline engine lane: ATS fetchers, intake pipeline, worker. Plain Node ESM, zero deps.",
+  "scripts": {
+    "worker": "node worker.js",
+    "intake": "node run-intake.js",
+    "checks": "node test/checks.js",
+    "smoke": "node test/smoke-live.js"
+  }
+}
