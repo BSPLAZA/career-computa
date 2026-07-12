@@ -35,6 +35,7 @@ type Pkg = {
   role: string | null; company: string | null;
   fitScore: number | null; topCaveat: string | null;
   status: string | null;
+  briefId: string | null;
 };
 
 const PREVIEW_CAP = 280;
@@ -142,11 +143,12 @@ export default function LiveApplyReady() {
     for (const r of rows ?? []) {
       let g = groups.get(r.taskId);
       if (!g) {
-        g = { taskId: r.taskId, userId: r.userId, createdAt: r.createdAt, byKind: {}, job: null, role: null, company: null, fitScore: null, topCaveat: null, status: null };
+        g = { taskId: r.taskId, userId: r.userId, createdAt: r.createdAt, byKind: {}, job: null, briefId: null, role: null, company: null, fitScore: null, topCaveat: null, status: null };
         groups.set(r.taskId, g);
       }
       g.byKind[r.kind] = r;
       if (r.job && !g.job) g.job = r.job;
+      if (r.briefId && !g.briefId) g.briefId = r.briefId;
       g.createdAt = Math.max(g.createdAt, r.createdAt);
     }
     const out: Pkg[] = [];
@@ -332,6 +334,11 @@ export default function LiveApplyReady() {
               ) : (
                 <button disabled title="No matching job row with an apply link yet">Open application</button>
               )}
+              {p.briefId ? (
+                <a href={'/brief/' + p.briefId} target="_blank" rel="noreferrer">
+                  <button>Open full brief</button>
+                </a>
+              ) : null}
               {isApplied ? (
                 <span className="badge b-ok">applied</span>
               ) : (

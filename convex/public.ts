@@ -230,6 +230,12 @@ export const digestQueue = query({
       .order("desc")
       .take(200);
     const pending = artifacts.filter((a) => a.deliveredAt === undefined);
+    // The delivery brief is stamped delivered at creation, so it never appears in
+    // pending; map taskId to its brief id so cards can still link the full brief.
+    const briefByTask = new Map<Id<"tasks">, Id<"artifacts">>();
+    for (const a of artifacts) {
+      if (a.kind === "delivery_brief" && !briefByTask.has(a.taskId)) briefByTask.set(a.taskId, a._id);
+    }
     const rows = [];
     // Joined per task: the task's jobId (set by the pipeline when it picks the
     // job) plus the job row's real title, company, applyUrl, and state. This is
@@ -280,6 +286,7 @@ export const digestQueue = query({
         preview: a.content.slice(0, 280),
         taskKind: t.kind,
         job,
+        briefId: briefByTask.get(a.taskId) ?? null,
         createdAt: a._creationTime,
       });
     }
