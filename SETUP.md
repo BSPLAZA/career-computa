@@ -22,6 +22,7 @@ npx convex dev --once        # creates/deploys backend
 node scripts/seed-companies.ts   # seeds the verified board registry
 cd web && npx wrangler secret put ELEVENLABS_API_KEY && npx vite build && npx wrangler deploy
 cd .. && npm run worker      # the pipeline worker (keep running; see the note below)
+node agents/telegram-bind.mjs &   # listens for Connect Telegram taps and binds chats (required for delivery)
 npm test                     # 12-case eval must pass
 ```
 

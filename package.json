@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node scripts/fit-eval.mjs",
     "worker": "node agents/worker.js",
-    "gen:boards": "node scripts/gen-boards.mjs"
+    "gen:boards": "node scripts/gen-boards.mjs",
+    "bind": "node agents/telegram-bind.mjs"
   },
   "keywords": [],
   "author": "",
