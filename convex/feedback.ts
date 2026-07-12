@@ -78,6 +78,42 @@ export const recordFeedback = mutation({
   },
 });
 
+// Undo for a just-given verdict: deletes the feedback row (scoped to its owner)
+// and retracts the preference rule that recordFeedback minted from it, matched by
+// the rule's provenance-free prefix. Backs the "Memory saved" toast's Undo button.
+export const undoFeedback = mutation({
+  args: { feedbackId: v.id("feedback"), userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const row = await ctx.db.get(args.feedbackId);
+    if (!row || row.userId !== args.userId) return { ok: false as const, error: "not_found" as const };
+
+    const mintedRule =
+      (row.verdict === "thumbs_down" && row.reason) || (row.verdict === "edit" && row.editDiff);
+    if (mintedRule) {
+      const prefix =
+        row.verdict === "thumbs_down"
+          ? `Avoid: ${clip(row.reason!, 120)} (from your thumbs down on `
+          : `Apply this edit pattern the user made: ${clip(row.editDiff!, 140)} (from your edit to `;
+      const profile = await ctx.db
+        .query("userProfiles")
+        .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+        .unique();
+      if (profile) {
+        const rules = profile.preferenceRules ?? [];
+        const idx = rules.findIndex((r) => r.startsWith(prefix));
+        if (idx >= 0) {
+          await ctx.db.patch(profile._id, {
+            preferenceRules: [...rules.slice(0, idx), ...rules.slice(idx + 1)],
+          });
+        }
+      }
+    }
+
+    await ctx.db.delete(args.feedbackId);
+    return { ok: true as const };
+  },
+});
+
 export const feedbackForUser = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) =>

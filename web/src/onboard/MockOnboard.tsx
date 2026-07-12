@@ -73,7 +73,9 @@ const mockBackend: OnboardBackend = {
     fixtures.users.set(user.userId, user);
     return { userId: user.userId, telegramDeepLink: 'https://t.me/CareerAgencyBriefs_bot?start=fixture-token (placeholder, mock mode)' };
   },
-  async deleteMyData(userId) {
+  async deleteMyData(userId, signupToken) {
+    const user = fixtures.users.get(userId);
+    if (!user || user.signupToken !== signupToken) return { ok: false, error: 'forbidden' };
     fixtures.users.delete(userId);
     fixtures.profiles.delete(userId);
     return { ok: true };

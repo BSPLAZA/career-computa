@@ -59,8 +59,8 @@ Report the returned task id and queued status. This creates a deterministic pipe
 
 ```sh
 npx convex run tasks:getTask '{"taskId":"..."}'
-npx convex run public:ledger '{"limit":100}'
-npx convex run runs:traceTree '{"runId":"..."}'
+npx convex run public:ledger '{"limit":100,"userId":"<owner user id>"}'
+npx convex run runs:traceTree '{"runId":"...","userId":"<owner user id>"}'
 ```
 
-A task is delivered only when `tasks:getTask` returns `status: "delivered"`. Get that task's run id from the tenant-safe public ledger before requesting its trace. Preserve any failed or escalated state and its context in the answer.
+A task is delivered only when `tasks:getTask` returns `status: "delivered"`. Run ids and traces are tenant-scoped: pass the owner's userId (or a delivery brief id as briefToken to traceTree); the anonymous ledger returns rows without run ids, and traceTree returns null without authorization. Preserve any failed or escalated state and its context in the answer.

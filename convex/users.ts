@@ -89,9 +89,15 @@ export const getUser = query({
 });
 
 // Removes every row belonging to the user, then the user itself. Returns per-table delete counts.
+// Caller must prove account ownership with the user's signupToken (handed out at
+// signup); a bare userId scraped from any surface is not enough to delete an account.
 export const deleteMyData = mutation({
-  args: { userId: v.id("users") },
+  args: { userId: v.id("users"), signupToken: v.string() },
   handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.signupToken !== args.signupToken) {
+      return { ok: false as const, error: "forbidden" as const, counts: null };
+    }
     const counts: Record<string, number> = {};
     await ctx.db.patch(args.userId, { deleteRequestedAt: Date.now() });
 

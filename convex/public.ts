@@ -19,8 +19,11 @@ function startOfTodayPacific(now: number): number {
 }
 
 // Public work ledger: masked email, task id, timestamps, agents involved, success, cost, latency.
+// Run ids are a capability to the full trace, so they are tenant-scoped: pass the
+// owner's userId to get runIds for that user's rows (the VERIFY flow); anonymous
+// callers get the row without run ids.
 export const ledger = query({
-  args: { limit: v.optional(v.number()) },
+  args: { limit: v.optional(v.number()), userId: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 30, 100);
     const tasks = await ctx.db.query("tasks").order("desc").take(limit);
@@ -47,10 +50,11 @@ export const ledger = query({
           .collect();
         for (const s of steps) agents.add(s.agentRole);
       }
+      const ownRow = args.userId !== undefined && task.userId === args.userId;
       rows.push({
         taskId: task._id,
-        runId: runs.length > 0 ? runs[runs.length - 1]._id : null,
-        runIds: runs.map((r) => r._id),
+        runId: ownRow && runs.length > 0 ? runs[runs.length - 1]._id : null,
+        runIds: ownRow ? runs.map((r) => r._id) : ([] as typeof runs[number]["_id"][]),
         maskedEmail: user ? maskEmail(user.email) : "***",
         isTeam: user?.isTeam ?? false,
         kind: task.kind,
@@ -175,9 +179,11 @@ export const getArtifact = query({
       }
     }
     if (!authorized) return null;
+    // Never emit userId: the id is a bearer capability, and a shareable brief link
+    // must not escalate to full-account access. Callers who are the owner already
+    // hold their own id.
     return {
       artifactId: a._id,
-      userId: a.userId,
       taskId: a.taskId,
       runId: a.runId,
       kind: a.kind,

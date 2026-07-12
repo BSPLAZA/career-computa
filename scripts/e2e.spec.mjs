@@ -88,20 +88,11 @@ try {
   const masked = whoCells.length > 0 && whoCells.every(t => t.includes('***@') || t.includes('***'));
   record(7, 'Ledger shows only masked emails to a stranger', masked, `${whoCells.length} rows checked`);
 
-  // ---- VERIFY on a delivered row, zero typing ----
-  const rowIdx = await page.$$eval('table tbody tr', trs =>
-    trs.findIndex(tr => tr.querySelector('td:nth-child(7)')?.textContent?.trim() === 'delivered'));
-  if (rowIdx < 0) {
-    record(1, 'VERIFY opens trace from a delivered ledger row', false, 'no delivered row on the ledger');
-  } else {
-    await page.click(`table tbody tr:nth-child(${rowIdx + 1}) a:has-text("VERIFY")`);
-    await page.waitForSelector('text=Verifying task', { timeout: 15000 });
-    await page.waitForSelector('.step-row', { timeout: 25000 });
-    const steps = await page.$$eval('.step-row', s => s.length);
-    const roles = await page.$$eval('.step-row .role-tag', rs => [...new Set(rs.map(r => r.textContent))]);
-    record(1, 'VERIFY opens trace from a delivered ledger row (zero typing)', steps > 0,
-      `${steps} steps, agents: ${roles.join(', ')}`);
-  }
+  // ---- VERIFY is tenant-scoped: anonymous rows carry no trace capability ----
+  const verifyLinks = await page.$$eval('table tbody tr a', as => as.filter(a => a.textContent?.trim() === 'VERIFY').length);
+  const ownerOnly = await page.$$eval('table tbody tr td', tds => tds.filter(t => t.textContent?.trim() === 'owner only').length);
+  record(7, 'Anonymous ledger shows owner-only VERIFY (traces are private)', verifyLinks === 0 && ownerOnly > 0,
+    `${verifyLinks} VERIFY links, ${ownerOnly} owner-only cells`);
 
   // ---- 7. Queue and Ready as a stranger: no drafts visible ----
   await clickTab(page, 'Queue');

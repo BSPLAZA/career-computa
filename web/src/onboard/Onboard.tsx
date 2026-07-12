@@ -29,7 +29,8 @@ export type OnboardBackend = {
   useUser(userId: string | null): OnboardUser;
   useProfile(userId: string | null): any;
   signup(email: string): Promise<{ userId: string; telegramDeepLink: string }>;
-  deleteMyData(userId: string): Promise<unknown>;
+  // signupToken proves account ownership; a bare userId cannot delete an account.
+  deleteMyData(userId: string, signupToken: string): Promise<unknown>;
   upsertProfile(args: { userId: string; profile: any }): Promise<unknown>;
   createTask(args: { userId: string; input: string }): Promise<{ taskId: string }>;
   extract(transcript: string): Promise<{ ok: true; fields: ExtractedFields } | { ok: false; error: string }>;
@@ -120,7 +121,7 @@ export default function OnboardVoice() {
       const r = await signupMut({ email });
       return { userId: r.userId, telegramDeepLink: r.telegramDeepLink };
     },
-    deleteMyData: userId => deleteMut({ userId: userId as Id<'users'> }),
+    deleteMyData: (userId, signupToken) => deleteMut({ userId: userId as Id<'users'>, signupToken }),
     upsertProfile: ({ userId, profile }) => upsertProfileMut({ userId: userId as Id<'users'>, profile }),
     createTask: async ({ userId, input }) => {
       const r = await createTaskMut({ userId: userId as Id<'users'>, kind: 'intake', input });
@@ -270,8 +271,10 @@ export function OnboardVoiceView({ backend }: { backend: OnboardBackend }) {
   }
 
   async function onDelete() {
-    if (!myId) return;
-    await backend.deleteMyData(myId);
+    // The signup token comes off the loaded user row; without it the server
+    // refuses the delete, so wait for the row instead of firing a no-op.
+    if (!myId || !me?.signupToken) return;
+    await backend.deleteMyData(myId, me.signupToken);
     backend.clearMyUserId();
     setSignupResult(null);
     setDeleted(true);

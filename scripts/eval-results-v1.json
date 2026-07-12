@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-12T02:26:12.191Z",
+  "timestamp": "2026-07-12T03:52:04.964Z",
   "fixture": "fit-eval-v1",
   "fixtureFetchedAt": "2026-07-11T22:30:00Z",
   "scorer": "agents/intake.js#applyHardFilters(job, hardFilters)",

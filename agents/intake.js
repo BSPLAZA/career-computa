@@ -157,7 +157,9 @@ export async function runIntake(ctx) {
     // 1. manager plans; free-text company names map to the board registry (exact,
     // then fuzzy); only true misses escalate, with friendly context
     const planRes = await tr.step('manager', 'plan',
-      `intake task ${task._id}: input=${clip(boardKey, 80)}, top=${top}, user=${userId}`,
+      // Opaque tenant tag only: plaintext userIds are a capability and never
+      // belong in step summaries readable off the trace surface.
+      `intake task ${task._id}: input=${clip(boardKey, 80)}, top=${top}, tenant:${String(userId).slice(-4)}`,
       async () => {
         const resolved = resolveBoard(task.input);
         if (!resolved.board) {

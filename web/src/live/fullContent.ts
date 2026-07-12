@@ -7,6 +7,13 @@ import { api, convexClient, getMyUserId } from '../convex';
 import type { Id } from '../../../convex/_generated/dataModel';
 
 const cache = new Map<string, string>();
+// Artifact ids whose fetch attempt finished (loaded, denied, or errored). Lets
+// counters stop saying "loading" once the answer is in, whatever it was.
+const settledIds = new Set<string>();
+
+export function fullContentSettled(artifactId: string): boolean {
+  return settledIds.has(artifactId);
+}
 
 // Fetches full content for the given artifact ids (owner-scoped by default,
 // brief-token-scoped when briefToken is set). Returns artifactId -> full content;
@@ -35,8 +42,10 @@ export function useFullContents(artifactIds: string[], briefToken?: string): Rec
               ...(briefToken ? { briefToken } : {}),
             });
             if (a) cache.set(id, a.content);
+            settledIds.add(id);
           } catch {
             // transient failure: preview fallback stays honest, retry next mount
+            settledIds.add(id);
           } finally {
             inFlight.current.delete(id);
           }

@@ -7,7 +7,7 @@
 // Copy buttons copy the FULL artifact text: previews are swapped for full
 // content via the tenant-scoped public.getArtifact query. A block is labeled
 // only while its full text is still loading.
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api, convexClient, getMyUserId } from '../convex';
 import type { Id } from '../../../convex/_generated/dataModel';
@@ -25,7 +25,7 @@ type QueueRow = {
   kind: string; variantId: string | null;
   gateResults: { gate: string; pass: boolean; note?: string }[];
   sourceUrls: string[]; preview: string; taskKind: string | null;
-  job: JoinedJob | null; createdAt: number;
+  job: JoinedJob | null; briefId: string | null; createdAt: number;
 };
 
 type Pkg = {
@@ -70,6 +70,25 @@ function norm(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
+// Friendly label for a resume variant, derived from the variantId only (never
+// from the artifact content, which is raw HTML). Renderer ids look like
+// "senior-product-manager-<ts36>-<hex12>"; strip the machine suffix, keep the role.
+function variantLabel(variantId: string | null | undefined): string {
+  if (!variantId) return 'Tailored resume';
+  const parts = variantId.replace(/^novariant-/, '').split('-').filter(Boolean);
+  // Trailing machine suffixes: hex (new) or base36 timestamps (mrgz...). Real role
+  // words are dictionary words; strip a trailing token when it is all lowercase
+  // alphanumerics of length >= 5, contains a digit OR is not a plausible word
+  // (no vowel, or looks like a base36 timestamp starting with m/l/k). Keep >= 1.
+  const isMachine = (s) => /^[a-z0-9]{5,14}$/.test(s) && (/\d/.test(s) || !/[aeiou]/.test(s) || /^[klm][a-z0-9]{6,9}$/.test(s));
+  while (parts.length > 1 && isMachine(parts[parts.length - 1])) {
+    parts.pop();
+  }
+  const words = parts.join(' ').trim();
+  if (!words) return 'Tailored resume';
+  return 'Tailored for ' + words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 function CopyBtn({ text, label }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
   return (
@@ -112,6 +131,7 @@ export default function LiveApplyReady() {
   const ledger = useQuery(api.public.ledger, { limit: 100 });
   const setJobState = useMutation(api.jobs.setJobState);
   const recordFeedback = useMutation(api.feedback.recordFeedback);
+  const undoFeedback = useMutation(api.feedback.undoFeedback);
 
   // Full artifact text for every block we render, so copy never truncates.
   const artifactIds = useMemo(() => (rows ?? []).map(r => r.artifactId), [rows]);
@@ -125,11 +145,14 @@ export default function LiveApplyReady() {
   const [applied, setApplied] = useState<Set<string>>(new Set());
   const [reasonFor, setReasonFor] = useState<string | null>(null);
   const [otherText, setOtherText] = useState('');
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; undo?: () => Promise<void> } | null>(null);
+  const toastTimer = useRef<number | null>(null);
 
-  function showToast(msg: string) {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3500);
+  function showToast(msg: string, undo?: () => Promise<void>) {
+    if (toastTimer.current) window.clearTimeout(toastTimer.current);
+    setToast({ msg, undo });
+    // Undoable toasts linger longer so the button is actually reachable.
+    toastTimer.current = window.setTimeout(() => setToast(null), undo ? 8000 : 3500);
   }
 
   const statusByTask = useMemo(() => {
@@ -221,7 +244,8 @@ export default function LiveApplyReady() {
 
   async function onNotForMe(p: Pkg, job: any | null, reason: string) {
     const finalReason = reason === 'other' ? (otherText.trim() || 'other') : reason;
-    await recordFeedback({
+    const prevJobState: string | null = job?.state ?? null;
+    const fb = await recordFeedback({
       userId: p.userId as Id<'users'>,
       verdict: 'thumbs_down',
       reason: `not for me: ${finalReason}`,
@@ -231,7 +255,16 @@ export default function LiveApplyReady() {
     if (job) await setJobState({ jobId: job._id, state: 'closed' });
     setDismissed(prev => new Set(prev).add(p.taskId));
     setReasonFor(null); setOtherText('');
-    showToast(`Saved: ${finalReason}. Career Computa factors this into the next scan.`);
+    // Undo deletes the feedback row (and its learned rule), restores the card,
+    // and puts the job back in its previous pipeline state.
+    showToast('Memory saved: we will use this', async () => {
+      await undoFeedback({ feedbackId: fb.feedbackId, userId: p.userId as Id<'users'> });
+      if (job && prevJobState && prevJobState !== 'closed') {
+        await setJobState({ jobId: job._id, state: prevJobState as any });
+      }
+      setDismissed(prev => { const next = new Set(prev); next.delete(p.taskId); return next; });
+      setToast(null);
+    });
   }
 
   const visible = pkgs.filter(p => !dismissed.has(p.taskId));
@@ -280,7 +313,9 @@ export default function LiveApplyReady() {
             </div>
 
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
-              <span className={`badge ${resume ? 'b-ok' : 'b-muted'}`}>{resume ? 'Resume rendered' : 'Resume pending'}</span>
+              {/* "Resume rendered" is claimed only when real resume HTML exists; a
+                  placeholder artifact (renderer unavailable) is not a deliverable. */}
+              <span className={`badge ${resumeIsHtml ? 'b-ok' : 'b-muted'}`}>{resumeIsHtml ? 'Resume rendered' : 'No resume yet, add one on Onboard'}</span>
               <span className={`badge ${p.status === 'delivered' || brief ? 'b-ok' : 'b-muted'}`}>
                 {brief ? 'Answers and brief below' : p.status === 'delivered' ? 'Brief delivered' : 'Brief pending'}
               </span>
@@ -307,16 +342,16 @@ export default function LiveApplyReady() {
               <CopyBlock title="DM body" text={dmBody} capped={isCapped(dm)} />
             )}
             {brief && <CopyBlock title="Delivery brief (answers included)" text={text(brief)} capped={isCapped(brief)} extra={<a href={`/brief/${brief.artifactId}`} target="_blank" rel="noreferrer">open full brief</a>} />}
-            {resume && (
+            {resume && resumeIsHtml && resume.variantId ? (
               <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>
-                {resumeIsHtml && resume.variantId ? (
-                  <>
-                    Resume variant <span className="mono">{resume.variantId}</span>:{' '}
-                    <a href={`/resume/${resume.variantId}`} target="_blank" rel="noreferrer">open printable resume (print or save as PDF)</a>
-                  </>
-                ) : (
-                  <>Resume variant: <span className="mono">{resume.variantId ?? resumeText.split('/').pop()}</span></>
-                )}
+                Resume variant: <b>{variantLabel(resume.variantId)}</b>{' '}
+                <a href={`/resume/${resume.variantId}`} target="_blank" rel="noreferrer">open printable resume (print or save as PDF)</a>
+              </div>
+            ) : (
+              <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>
+                No resume yet.{' '}
+                <a href="#onboard" onClick={e => { e.preventDefault(); dispatch({ type: 'setTab', tab: 'onboard' }); }}>Add one on Onboard</a>{' '}
+                and the next package gets a tailored variant.
               </div>
             )}
             {research && research.sourceUrls.length > 0 && (
@@ -372,7 +407,14 @@ export default function LiveApplyReady() {
           </div>
         );
       })}
-      {toast && <div className="toast">{toast}</div>}
+      {toast && (
+        <div className="toast">
+          {toast.msg}
+          {toast.undo && (
+            <button className="small" style={{ marginLeft: 10 }} onClick={() => { void toast.undo!(); }}>Undo</button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

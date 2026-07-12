@@ -133,9 +133,27 @@ export const markArtifactDelivered = mutation({
 });
 
 // RunSteps grouped into a tree by parentSeq. Flat list included for tables.
+// Tenant-scoped like public.getArtifact: access requires the owner's userId OR a
+// valid brief token (the artifact id of a delivery_brief on the run's task).
+// Anything else gets null, same as a missing run.
 export const traceTree = query({
-  args: { runId: v.id("runs") },
+  args: {
+    runId: v.id("runs"),
+    userId: v.optional(v.id("users")),
+    briefToken: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
+    const run = await ctx.db.get(args.runId);
+    if (!run) return null;
+    let authorized = args.userId !== undefined && run.userId === args.userId;
+    if (!authorized && args.briefToken) {
+      const briefId = ctx.db.normalizeId("artifacts", args.briefToken);
+      if (briefId) {
+        const brief = await ctx.db.get(briefId);
+        if (brief && brief.kind === "delivery_brief" && brief.taskId === run.taskId) authorized = true;
+      }
+    }
+    if (!authorized) return null;
     const steps = await ctx.db
       .query("runSteps")
       .withIndex("by_run_seq", (q) => q.eq("runId", args.runId))
@@ -150,7 +168,14 @@ export const traceTree = query({
       if (parent && parent !== n) parent.children.push(n);
       else roots.push(n);
     }
-    const run = await ctx.db.get(args.runId);
-    return { run, steps, tree: roots };
+    // Redaction for the shareable-brief-link path: strip the tenant id from the run
+    // and scrub any legacy plaintext user=<id> left in older step summaries, so a
+    // brief link never escalates to full-account access.
+    const scrub = (s: string | undefined) => (s || "").replace(/user=[a-z0-9]{20,}/gi, "tenant:redacted");
+    const { userId: _omit, ...runSafe } = run;
+    const safeSteps = steps.map((s) => ({ ...s, inputSummary: scrub(s.inputSummary), outputSummary: scrub(s.outputSummary) }));
+    const walk = (n: Node): Node => ({ ...n, inputSummary: scrub(n.inputSummary), outputSummary: scrub(n.outputSummary), children: n.children.map(walk) });
+    const safeTree = roots.map(walk);
+    return { run: runSafe, steps: safeSteps, tree: safeTree };
   },
 });

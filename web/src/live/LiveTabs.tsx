@@ -16,7 +16,7 @@ import type { Id } from '../../../convex/_generated/dataModel';
 import { useStore } from '../store';
 import { fmtTime, fmtDateTime, fmtUsd, fmtMs, truncate, isToday } from '../util';
 import OnboardVoice from '../onboard/Onboard';
-import { useFullContents } from './fullContent';
+import { useFullContents, fullContentSettled } from './fullContent';
 
 const BOT_LINK_HELP = 'Open the link, hit Start, briefs arrive in that chat.';
 
@@ -65,8 +65,9 @@ export function LegacyLiveOnboard() {
   }
 
   async function onDelete() {
-    if (!myId) return;
-    await deleteMyData({ userId: myId as Id<'users'> });
+    // deleteMyData proves ownership with the signup token; wait for the user row.
+    if (!myId || !me?.signupToken) return;
+    await deleteMyData({ userId: myId as Id<'users'>, signupToken: me.signupToken });
     clearMyUserId();
     setResult(null);
     setDeleted(true);
@@ -228,16 +229,22 @@ export function LiveQueue() {
         const isNote = r.kind === 'connection_note' || r.kind === 'dm_draft';
         const header = headerByTask.get(r.taskId);
         const bodyText = textOf(r);
-        const stillLoading = full[r.artifactId] === undefined && r.preview.length >= 280;
+        // Counter truth table: full text loaded (or preview is already complete,
+        // under the 280 cap) -> exact count from the text we show; fetch settled
+        // without full text -> honest preview label; otherwise briefly loading.
+        const countKnown = full[r.artifactId] !== undefined || r.preview.length < 280;
+        const counterLabel = countKnown
+          ? (r.kind === 'connection_note' ? `${bodyText.length}/300` : `${bodyText.length}`) + ' chars'
+          : fullContentSettled(r.artifactId)
+            ? '280+ chars (preview shown)'
+            : '280+ chars (full text loading)';
         return (
           <div className="queue-card" key={r.artifactId}>
             <div className="queue-head">
               {header && <b style={{ fontSize: 14 }}>{header}</b>}
               <span className="badge b-purple">{r.kind.replace(/_/g, ' ')}</span>
               {isNote && (
-                <span className="charcount">
-                  {stillLoading ? '280+ (full text loading)' : r.kind === 'connection_note' ? `${bodyText.length}/300` : `${bodyText.length}`} chars
-                </span>
+                <span className="charcount">{counterLabel}</span>
               )}
               <span className="muted mono" style={{ marginLeft: 'auto' }}>run {r.runId.slice(0, 10)}...</span>
             </div>
@@ -294,7 +301,10 @@ export function LiveQueue() {
 export function LiveLedger() {
   const { dispatch } = useStore();
   const counters = useQuery(api.public.counters, {});
-  const rows = useQuery(api.public.ledger, { limit: 50 });
+  // Signed-in owners get runIds back for their own rows (the VERIFY flow);
+  // anonymous visitors see the ledger without trace capabilities.
+  const myId = getMyUserId();
+  const rows = useQuery(api.public.ledger, { limit: 50, ...(myId ? { userId: myId as Id<'users'> } : {}) });
   const exceptions = (rows ?? []).filter(r => r.status === 'failed' || r.status === 'escalated');
 
   return (
@@ -367,7 +377,11 @@ export function LiveLedger() {
                 <td className="num-r">{fmtUsd(r.costUsd)}</td>
                 <td className="num-r">{r.latencyMs !== null ? fmtMs(r.latencyMs) : '...'}</td>
                 <td>
-                  <a href="#trace" onClick={e => { e.preventDefault(); dispatch({ type: 'setTab', tab: 'runs', runsFocus: { taskId: r.taskId, runId: r.runId ?? undefined } }); }}>VERIFY</a>
+                  {myId || r.runId ? (
+                    <a href="#trace" onClick={e => { e.preventDefault(); dispatch({ type: 'setTab', tab: 'runs', runsFocus: { taskId: r.taskId, runId: r.runId ?? undefined } }); }}>VERIFY</a>
+                  ) : (
+                    <span className="muted" style={{ fontSize: 11 }} title="Traces are private. Sign up on Onboard and verify your own rows.">owner only</span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -450,8 +464,13 @@ export function LiveRuns() {
   const focusRun = state.runsFocus?.runId;
   const [activeRunId, setActiveRunId] = useState<string | null>(focusRun ?? null);
   const [roleFilter, setRoleFilter] = useState('all');
-  const trace = useQuery(api.runs.traceTree, activeRunId ? { runId: activeRunId as Id<'runs'> } : 'skip');
-  const ledgerRows = useQuery(api.public.ledger, { limit: 100 });
+  // Traces are tenant-scoped: the signed-in user's id authorizes their own runs.
+  const myId = getMyUserId();
+  const trace = useQuery(
+    api.runs.traceTree,
+    activeRunId ? { runId: activeRunId as Id<'runs'>, ...(myId ? { userId: myId as Id<'users'> } : {}) } : 'skip',
+  );
+  const ledgerRows = useQuery(api.public.ledger, { limit: 100, ...(myId ? { userId: myId as Id<'users'> } : {}) });
 
   // Ledger VERIFY navigates here with a runId; open its trace directly.
   useEffect(() => {
@@ -497,7 +516,11 @@ export function LiveRuns() {
       for (let i = 0; i < runIds.length; i += 8) {
         await Promise.all(runIds.slice(i, i + 8).map(async id => {
           try {
-            const t = await convexClient!.query(api.runs.traceTree, { runId: id as Id<'runs'> });
+            const t = await convexClient!.query(api.runs.traceTree, {
+              runId: id as Id<'runs'>,
+              ...(getMyUserId() ? { userId: getMyUserId() as Id<'users'> } : {}),
+            });
+            if (!t) return;
             for (const s of t.steps) {
               const a = agg.get(s.agentRole) ?? { role: s.agentRole, cost: 0, steps: 0, tokens: 0 };
               a.cost += s.costUsd; a.steps += 1; a.tokens += s.tokensIn + s.tokensOut;
@@ -582,6 +605,9 @@ export function LiveRuns() {
       </div>
       {!activeRunId && <div className="panel empty">No run selected yet. The newest run opens automatically once the ledger loads.</div>}
       {activeRunId && trace === undefined && <div className="panel empty">Loading trace...</div>}
+      {activeRunId && trace === null && (
+        <div className="panel empty">This trace is private to its account owner. Sign up on Onboard to verify your own runs.</div>
+      )}
       {trace && trace.run && (
         <div className="panel">
           <div className="queue-head">

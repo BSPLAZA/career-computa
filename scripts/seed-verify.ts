@@ -63,10 +63,13 @@ async function main() {
   await c.mutation(api.runs.finishRun, { runId: run.runId, success: true });
   await c.mutation(api.tasks.completeTask, { taskId: task.taskId });
 
-  // trace tree
-  const trace = await c.query(api.runs.traceTree, { runId: run.runId });
-  assert(trace.steps.length === 2 && trace.tree.length === 1 && trace.tree[0].children.length === 1, "traceTree nests child step under parent");
-  assert(trace.run.costUsd > 0.0029 && trace.run.tokensIn === 300, "run totals rolled up from steps");
+  // trace tree (tenant-scoped: owner userId required, anonymous gets null)
+  const anonTrace = await c.query(api.runs.traceTree, { runId: run.runId });
+  assert(anonTrace === null, "traceTree denies callers without owner userId or brief token");
+  const trace = await c.query(api.runs.traceTree, { runId: run.runId, userId: s1.userId });
+  assert(trace !== null, "traceTree authorizes the owner");
+  assert(trace!.steps.length === 2 && trace!.tree.length === 1 && trace!.tree[0].children.length === 1, "traceTree nests child step under parent");
+  assert(trace!.run.costUsd > 0.0029 && trace!.run.tokensIn === 300, "run totals rolled up from steps");
 
   // feedback + escalation path
   await c.mutation(api.feedback.recordFeedback, { userId: s1.userId, artifactId: art.artifactId, verdict: "approve" });
@@ -77,7 +80,11 @@ async function main() {
   // public queries
   const ledger = await c.query(api.public.ledger, {});
   const row = ledger.find((r: any) => r.taskId === task.taskId);
-  assert(row && row.maskedEmail === "s***@example.com" && row.success === true && row.agentsInvolved.includes("scout"), "ledger row masked with agents and success");
+  assert(row && row.maskedEmail === "s***@***.com" && row.success === true && row.agentsInvolved.includes("scout"), "ledger row masked with agents and success");
+  assert(row!.runId === null && row!.runIds.length === 0, "anonymous ledger carries no run ids");
+  const ownLedger = await c.query(api.public.ledger, { userId: s1.userId });
+  const ownRow = ownLedger.find((r: any) => r.taskId === task.taskId);
+  assert(ownRow && ownRow.runId === run.runId && ownRow.runIds.length === 1, "owner ledger returns run ids for the VERIFY flow");
   const counters = await c.query(api.public.counters, {});
   assert(counters.tasksCompletedToday.total >= 1 && counters.tasksCompletedToday.judge === counters.tasksCompletedToday.total - counters.tasksCompletedToday.total, "counters split judge vs total (team user excluded from judge)");
   assert(counters.signupsWithFirstUse.total >= 1, "firstUse counted");
@@ -86,9 +93,11 @@ async function main() {
   const board = await c.query(api.jobs.pipelineBoard, { userId: s1.userId });
   assert(board.assessed && board.assessed.length === 1 && (board.assessed[0] as any).companyName === "Anthropic", "pipelineBoard groups by state with company name");
 
-  // delete-my-data wipes everything
-  const del = await c.mutation(api.users.deleteMyData, { userId: s1.userId });
-  assert(del.ok && del.counts.tasks === 2 && del.counts.jobs === 1 && del.counts.runSteps === 2, "deleteMyData removed all rows");
+  // delete-my-data wipes everything, but only with the owner's signup token
+  const badDel = await c.mutation(api.users.deleteMyData, { userId: s1.userId, signupToken: "nope" });
+  assert(!badDel.ok, "deleteMyData rejects a wrong signup token");
+  const del = await c.mutation(api.users.deleteMyData, { userId: s1.userId, signupToken: s1.signupToken });
+  assert(del.ok && del.counts && del.counts.tasks === 2 && del.counts.jobs === 1 && del.counts.runSteps === 2, "deleteMyData removed all rows");
   const gone = await c.query(api.users.getBySignupToken, { signupToken: s1.signupToken });
   assert(gone === null, "user gone after delete");
 
