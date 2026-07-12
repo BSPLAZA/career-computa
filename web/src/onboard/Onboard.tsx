@@ -1,7 +1,11 @@
-// Voice-first onboarding conversation (live mode). Screen 1 captures the user's own words
+// Voice-first onboarding conversation. Screen 1 captures the user's own words
 // (mic or typing), extraction turns them into confirm chips, steps 2 and 3 are cards for
 // signup + Telegram and the document drop. Sensitive fields (comp, work authorization) are
 // TYPE-ONLY by product decision: never voice-filled, always a typed confirm field.
+//
+// The data layer is injected as an OnboardBackend, so the exact same experience
+// renders in live mode (Convex, the default export) and in mock mode (fixtures,
+// see MockOnboard.tsx). The view never talks to Convex directly.
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api, getMyUserId, setMyUserId, clearMyUserId } from '../convex';
@@ -14,6 +18,25 @@ import {
 
 const BOT_LINK_HELP = 'Open the link, hit Start, briefs arrive in that chat.';
 const MAX_RECORD_SECONDS = 120;
+
+// ---------- backend seam ----------
+export type OnboardUser = { email: string; signupToken: string; telegramChatId?: string | null } | null | undefined;
+
+export type OnboardBackend = {
+  // true renders the fixtures banner (mock mode)
+  fixtures: boolean;
+  // hooks: the view calls each exactly once per render, so hook order stays stable
+  useUser(userId: string | null): OnboardUser;
+  useProfile(userId: string | null): any;
+  signup(email: string): Promise<{ userId: string; telegramDeepLink: string }>;
+  deleteMyData(userId: string): Promise<unknown>;
+  upsertProfile(args: { userId: string; profile: any }): Promise<unknown>;
+  createTask(args: { userId: string; input: string }): Promise<{ taskId: string }>;
+  extract(transcript: string): Promise<{ ok: true; fields: ExtractedFields } | { ok: false; error: string }>;
+  getMyUserId(): string | null;
+  setMyUserId(id: string): void;
+  clearMyUserId(): void;
+};
 
 type MicState = 'idle' | 'recording' | 'dictating' | 'transcribing' | 'unavailable';
 
@@ -83,22 +106,42 @@ function ChipGroup(props: {
 
 type FileCard = { name: string; sizeKb: number; status: string };
 
-// ---------- main ----------
+// ---------- live backend (default export) ----------
 export default function OnboardVoice() {
-  const { state, dispatch } = useStore();
+  const signupMut = useMutation(api.users.signup);
+  const deleteMut = useMutation(api.users.deleteMyData);
+  const createTaskMut = useMutation(api.tasks.createTask);
+  const upsertProfileMut = useMutation(api.intake.upsertProfile);
+  const backend: OnboardBackend = {
+    fixtures: false,
+    useUser: userId => useQuery(api.users.getUser, userId ? { userId: userId as Id<'users'> } : 'skip'),
+    useProfile: userId => useQuery(api.userProfiles.getByUserId, userId ? { userId: userId as Id<'users'> } : 'skip'),
+    signup: async email => {
+      const r = await signupMut({ email });
+      return { userId: r.userId, telegramDeepLink: r.telegramDeepLink };
+    },
+    deleteMyData: userId => deleteMut({ userId: userId as Id<'users'> }),
+    upsertProfile: ({ userId, profile }) => upsertProfileMut({ userId: userId as Id<'users'>, profile }),
+    createTask: async ({ userId, input }) => {
+      const r = await createTaskMut({ userId: userId as Id<'users'>, kind: 'intake', input });
+      return { taskId: r.taskId };
+    },
+    extract: extractTranscript,
+    getMyUserId, setMyUserId, clearMyUserId,
+  };
+  return <OnboardVoiceView backend={backend} />;
+}
 
-  // signup
-  const signup = useMutation(api.users.signup);
-  const deleteMyData = useMutation(api.users.deleteMyData);
-  const createTask = useMutation(api.tasks.createTask);
-  const upsertProfile = useMutation(api.intake.upsertProfile);
+// ---------- main view (backend-agnostic) ----------
+export function OnboardVoiceView({ backend }: { backend: OnboardBackend }) {
+  const { state, dispatch } = useStore();
 
   const [email, setEmail] = useState('');
   const [signupResult, setSignupResult] = useState<{ userId: string; telegramDeepLink: string } | null>(null);
   const [deleted, setDeleted] = useState(false);
-  const myId = deleted ? null : (signupResult?.userId ?? getMyUserId());
-  const me = useQuery(api.users.getUser, myId ? { userId: myId as Id<'users'> } : 'skip');
-  const existingProfile = useQuery(api.userProfiles.getByUserId, myId ? { userId: myId as Id<'users'> } : 'skip');
+  const myId = deleted ? null : (signupResult?.userId ?? backend.getMyUserId());
+  const me = backend.useUser(myId);
+  const existingProfile = backend.useProfile(myId);
 
   // voice + transcript
   const [micState, setMicState] = useState<MicState>('idle');
@@ -207,7 +250,7 @@ export default function OnboardVoice() {
     if (!transcript.trim() || extracting) return;
     setExtracting(true);
     setExtractNote(null);
-    const r = await extractTranscript(transcript);
+    const r = await backend.extract(transcript);
     setExtracting(false);
     if (r.ok) {
       setFields(r.fields);
@@ -220,16 +263,16 @@ export default function OnboardVoice() {
 
   async function onSignup(e: React.FormEvent) {
     e.preventDefault();
-    const r = await signup({ email: email.trim() });
-    setMyUserId(r.userId);
+    const r = await backend.signup(email.trim());
+    backend.setMyUserId(r.userId);
     setSignupResult({ userId: r.userId, telegramDeepLink: r.telegramDeepLink });
     setDeleted(false);
   }
 
   async function onDelete() {
     if (!myId) return;
-    await deleteMyData({ userId: myId as Id<'users'> });
-    clearMyUserId();
+    await backend.deleteMyData(myId);
+    backend.clearMyUserId();
     setSignupResult(null);
     setDeleted(true);
     setSaveResult(null);
@@ -244,10 +287,10 @@ export default function OnboardVoice() {
     try {
       const ex = existingProfile ?? null;
       const compNum = compFloor.trim() ? Number(compFloor.replace(/[^0-9.]/g, '')) : undefined;
-      await upsertProfile({
-        userId: myId as Id<'users'>,
+      await backend.upsertProfile({
+        userId: myId,
         profile: {
-          name: ex?.name ?? (me?.email ? me.email.split('@')[0] : 'New user'),
+          name: ex?.name ?? '',
           ...(ex?.headline ? { headline: ex.headline } : {}),
           locations: f.locations.length ? f.locations : (ex?.locations ?? []),
           goals: {
@@ -275,12 +318,12 @@ export default function OnboardVoice() {
       }
       const scans: { name: string; taskId: string }[] = [];
       for (const b of matched.slice(0, 3)) {
-        const r = await createTask({ userId: myId as Id<'users'>, kind: 'intake', input: `board:${b.key}` });
+        const r = await backend.createTask({ userId: myId, input: `board:${b.key}` });
         scans.push({ name: b.name, taskId: r.taskId });
       }
       if (scans.length === 0 && routed.length > 0) {
         // Honest escalation path: a human routes companies we cannot poll yet.
-        const r = await createTask({ userId: myId as Id<'users'>, kind: 'intake', input: routed[0] });
+        const r = await backend.createTask({ userId: myId, input: routed[0] });
         scans.push({ name: `${routed[0]} (human routing)`, taskId: r.taskId });
       }
       setSaveResult({ scans, routed });
@@ -305,7 +348,13 @@ export default function OnboardVoice() {
     <div className="vo">
       <style>{VO_CSS}</style>
       <h2>Onboard</h2>
-      <p className="sub">Tell the agency what you want in your own words. It listens, you confirm, agents do the volume work.</p>
+      <p className="sub">Your AI job-search agency. Say what you want in your own words; agents scan real job boards, score fit, research companies, and draft your outreach. Nothing is sent without your tap.</p>
+      {backend.fixtures && (
+        <div className="vo-note" style={{ marginBottom: 12 }}>
+          FIXTURES: mock mode. This is the real voice-first onboarding flow running on local fixtures:
+          signup, extraction, and saved profiles stay in this tab, no backend is reached, and the Telegram link is a placeholder.
+        </div>
+      )}
 
       {/* Screen 1: the conversation */}
       <section className="panel vo-hero">
@@ -532,38 +581,49 @@ export default function OnboardVoice() {
 }
 
 const VO_CSS = `
-.vo-hero { border: 1px solid var(--line, #2a2f3a); }
-.vo-hint { font-size: 13px; margin-bottom: 12px; }
-.vo-mic-row { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+.vo-hero { border-color: var(--accent-edge, #c6e0d4); background: linear-gradient(180deg, #ffffff, #fbfdfc); }
+.vo-hint { font-size: 13px; margin-bottom: 14px; max-width: 62ch; }
+.vo-mic-row { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
 .vo-mic {
-  width: 74px; height: 74px; border-radius: 50%; border: 2px solid currentColor;
+  width: 74px; height: 74px; border-radius: 50%; border: 2px solid var(--accent, #0e7a5c);
   display: flex; align-items: center; justify-content: center; cursor: pointer;
-  background: transparent; color: inherit; flex: 0 0 auto;
+  background: var(--accent-dim, #e6f2ec); color: var(--accent-strong, #0b6248); flex: 0 0 auto;
+  transition: background 0.15s, box-shadow 0.15s;
 }
-.vo-mic:disabled { opacity: 0.45; cursor: default; }
-.vo-mic-live { animation: vo-pulse 1.2s ease-in-out infinite; color: #e5654f; border-color: #e5654f; }
-@keyframes vo-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(229,101,79,0.45); } 50% { box-shadow: 0 0 0 12px rgba(229,101,79,0); } }
-.vo-mic-label { font-weight: 600; }
-.vo-note { font-size: 12px; padding: 6px 10px; border-radius: 6px; background: rgba(226,185,59,0.12); margin: 8px 0; }
-.vo-transcript { width: 100%; min-height: 110px; margin-top: 8px; font: inherit; padding: 10px; border-radius: 8px; box-sizing: border-box; }
-.vo-confirm { margin-top: 16px; border-top: 1px dashed var(--line, #2a2f3a); padding-top: 12px; }
-.vo-group { margin: 10px 0; }
-.vo-group-label { font-size: 12px; color: var(--muted, #8b93a5); margin-bottom: 5px; }
+.vo-mic:hover { box-shadow: var(--shadow-md); border-color: var(--accent-strong, #0b6248); }
+.vo-mic:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+.vo-mic-live { animation: vo-pulse 1.2s ease-in-out infinite; color: #c23a2b; border-color: #c23a2b; background: #fbeae7; }
+@keyframes vo-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(194,58,43,0.35); } 50% { box-shadow: 0 0 0 14px rgba(194,58,43,0); } }
+.vo-mic-label { font-weight: 600; font-size: 15px; }
+.vo-note { font-size: 12px; padding: 7px 11px; border-radius: 8px; background: var(--warn-bg, #faf2da); color: var(--warn-fg, #77510a); margin: 8px 0; }
+.vo-transcript { width: 100%; min-height: 110px; margin-top: 8px; font: inherit; line-height: 1.6; padding: 12px 14px; border-radius: 12px; box-sizing: border-box; resize: vertical; }
+.vo-confirm { margin-top: 18px; border-top: 1px dashed var(--border, #e3e7e2); padding-top: 14px; }
+.vo-confirm h4 { margin-bottom: 4px; }
+.vo-group { margin: 12px 0; }
+.vo-group-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted, #5c6862); margin-bottom: 6px; }
 .vo-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.vo-chip { display: inline-flex; align-items: center; gap: 2px; border: 1px solid var(--line, #3a4152); border-radius: 999px; padding: 3px 10px; font-size: 13px; background: transparent; color: inherit; }
-.vo-chip-text { background: none; border: none; color: inherit; font: inherit; cursor: pointer; padding: 0; }
-.vo-chip-x { background: none; border: none; color: var(--muted, #8b93a5); cursor: pointer; font-size: 12px; padding: 0 0 0 6px; }
-.vo-chip-editing input, .vo-chip-add input { background: transparent; border: none; color: inherit; font: inherit; outline: none; min-width: 110px; }
+.vo-chip {
+  display: inline-flex; align-items: center; gap: 2px; border: 1px solid var(--border, #e3e7e2);
+  border-radius: 999px; padding: 4px 12px; font-size: 13px; background: var(--panel, #fff);
+  color: inherit; box-shadow: var(--shadow-sm);
+}
+.vo-chip-text { background: none; border: none; color: inherit; font: inherit; cursor: pointer; padding: 0; box-shadow: none; }
+.vo-chip-text:hover { box-shadow: none; border: none; color: var(--accent-strong, #0b6248); }
+.vo-chip-x { background: none; border: none; color: var(--muted, #5c6862); cursor: pointer; font-size: 12px; padding: 0 0 0 7px; box-shadow: none; }
+.vo-chip-x:hover { color: var(--red, #c23a2b); box-shadow: none; border: none; }
+.vo-chip-editing input, .vo-chip-add input { background: transparent; border: none; color: inherit; font: inherit; outline: none; min-width: 110px; padding: 0; border-radius: 0; box-shadow: none; }
+.vo-chip-add { box-shadow: none; border-style: dashed; background: transparent; }
 .vo-chip-pick { cursor: pointer; }
-.vo-chip-on { border-color: #4cc38a; color: #4cc38a; font-weight: 600; }
-.vo-followup { font-size: 12px; font-style: italic; color: var(--muted, #8b93a5); margin: 3px 0 6px; }
-.vo-suggest { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; font-size: 12px; }
-.vo-typed { margin-top: 14px; padding: 10px; border: 1px solid var(--line, #3a4152); border-radius: 8px; }
+.vo-chip-pick:hover { border-color: var(--accent, #0e7a5c); color: var(--accent-strong, #0b6248); }
+.vo-chip-on { border-color: var(--accent, #0e7a5c); background: var(--accent-dim, #e6f2ec); color: var(--accent-strong, #0b6248); font-weight: 600; }
+.vo-followup { font-size: 12.5px; font-style: italic; color: var(--muted, #5c6862); margin: 3px 0 7px; }
+.vo-suggest { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; font-size: 12px; }
+.vo-typed { margin-top: 16px; padding: 13px 14px; border: 1px solid var(--border, #e3e7e2); border-radius: 12px; background: var(--panel2, #f2f4f1); }
 .vo-typed-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
 .vo-typed-row .field { flex: 1; min-width: 200px; }
 .vo-done { margin-top: 12px; font-size: 13px; }
-.vo-browse { display: inline-block; margin-top: 8px; font-size: 12px; text-decoration: underline; cursor: pointer; }
+.vo-browse { display: inline-block; margin-top: 10px; font-size: 12px; color: var(--accent-strong, #0b6248); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .vo-files { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-top: 10px; }
-.vo-file { border: 1px solid var(--line, #3a4152); border-radius: 8px; padding: 8px 10px; }
+.vo-file { border: 1px solid var(--border, #e3e7e2); border-radius: 10px; padding: 8px 10px; background: var(--panel, #fff); box-shadow: var(--shadow-sm); }
 .vo-file-name { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 `;

@@ -50,7 +50,7 @@ export default function Queue() {
             </div>
 
             {state.demoMode && isNote ? (
-              <div className="draft-body muted">[message body hidden in demo mode]</div>
+              <div className="draft-body muted">[hidden by privacy mask]</div>
             ) : editing === a._id ? (
               <textarea
                 className="draft-body"

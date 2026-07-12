@@ -2,11 +2,11 @@
 // what is wired and what is not.
 export default function Help() {
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto' }}>
+    <div className="help-doc">
       <h2>How to run Career Computa</h2>
-      <p className="sub">One page. Everything an operator needs during judging, in plain words.</p>
+      <p className="sub">One page, plain words. Everything you need to run your search here.</p>
 
-      <section className="panel" style={{ marginBottom: 14 }}>
+      <section className="panel">
         <h3>What this is</h3>
         <p>
           Career Computa is a staff of AI agents that hunts jobs for you. It scans real company job boards,
@@ -16,23 +16,23 @@ export default function Help() {
         </p>
       </section>
 
-      <section className="panel" style={{ marginBottom: 14 }}>
+      <section className="panel">
         <h3>Review and approve drafts (Queue tab)</h3>
         <p>
           Every outbound draft waits in the Queue for your decision. Three buttons per card:
         </p>
-        <ul style={{ paddingLeft: 20, marginTop: 6 }}>
+        <ul>
           <li><b>Approve</b>: the draft is cleared to ship as written.</li>
           <li><b>Edit</b>: fix the text, then save. Your edit is recorded and trains the drafter.</li>
           <li><b>Skip</b>: reject it with a reason. The reason is recorded too.</li>
         </ul>
         <p style={{ marginTop: 6 }}>
-          Every decision writes a Feedback row you can point at later. Approvals with zero edits build the
+          Every decision writes a feedback row you can point at later. Approvals with zero edits build the
           trust streak that eventually lets a draft kind ship without review.
         </p>
       </section>
 
-      <section className="panel" style={{ marginBottom: 14 }}>
+      <section className="panel">
         <h3>Apply to a job (Ready tab)</h3>
         <p>
           One card per finished job package. Use the copy button on any block (answers, connection note, DM),
@@ -42,31 +42,31 @@ export default function Help() {
         </p>
       </section>
 
-      <section className="panel" style={{ marginBottom: 14 }}>
+      <section className="panel">
         <h3>See the receipts (Ledger and Runs tabs)</h3>
         <p>
-          The Ledger is the public work log: one row per task with cost, latency, and the agents involved.
+          The Ledger is the work log: one row per task with cost, latency, and the agents involved.
           Click <b>VERIFY</b> on any row and the full step-by-step trace for that run opens on the Runs tab,
           no typing needed. The Runs tab also shows which agent spent the most money today.
           Failures and escalations stay on the board; nothing is hidden.
         </p>
       </section>
 
-      <section className="panel" style={{ marginBottom: 14 }}>
+      <section className="panel">
         <h3>Pause an agent (Roster tab)</h3>
         <p>
-          Honest answer: not wired yet. The Roster cards are sample data and the pause and quota controls are
-          disabled in live mode. The banner on that tab says the same thing. Real per-agent trust streaks are
-          the next backend item.
+          Honest answer: not wired yet. The trust meters on the Roster are live and built from your real
+          feedback, but the pause and quota controls are disabled until the worker can read them.
+          The note on that tab says the same thing.
         </p>
       </section>
 
       <section className="panel">
         <h3>Good to know</h3>
-        <ul style={{ paddingLeft: 20 }}>
-          <li>Demo mode (top right) masks emails and hides other people's message bodies. You always see your own drafts.</li>
-          <li>Judge counters on the Ledger exclude team accounts; the total including team shows alongside.</li>
-          <li>Delete my data (Onboard tab) purges every row for your account.</li>
+        <ul>
+          <li>Privacy mask (top right) hides emails and other people's message bodies. You always see your own drafts.</li>
+          <li>Ledger counters split member activity from the team's own accounts, so the numbers stay honest.</li>
+          <li>Delete my data (Onboard tab) purges every row for your account, immediately.</li>
         </ul>
       </section>
     </div>

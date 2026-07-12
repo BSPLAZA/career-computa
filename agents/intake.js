@@ -15,6 +15,9 @@ import { sendBrief } from './telegram.js';
 
 const clip = (s, n = 220) => { s = String(s ?? '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 3) + '...' : s; };
 
+// Public dashboard host for links embedded in briefs (printable resume, brief pages).
+const WEB_BASE_URL = (process.env.WEB_BASE_URL || 'https://career-agency-web.bsplaza.workers.dev').replace(/\/$/, '');
+
 // ---------- step tracer: one RunStep row per step, tokens/cost/ms tracked ----------
 class Tracer {
   constructor(store, runId) {
@@ -317,6 +320,10 @@ export async function runIntake(ctx) {
         jobId, fitScore: fit.score, caveats: fit.caveats, fitEvidence: fit.evidence,
         hardFilterResult: { rejected: false },
       });
+      // Bind the task to its picked job so surfaces join task -> job directly
+      // (first pick wins; setTaskJob never overwrites). Best effort: an older
+      // store without the mutation must not fail the run.
+      try { await store.setTaskJob?.({ taskId: task._id, jobId }); } catch { /* non-fatal */ }
 
       const fitArtifact = await finalizeWithTrust({
         runId, taskId: task._id, userId, kind: 'fit_report',
@@ -555,7 +562,8 @@ function composeBriefMd({ profile, boardInfo, jobSections, totals }) {
     lines.push('');
     lines.push(`### Resume variant`);
     if (s.resume.html) {
-      lines.push(`Variant ${s.resume.variantId}, tailored to this JD and rendered below. A print-ready PDF is generated on request.`);
+      lines.push(`Variant ${s.resume.variantId}, tailored to this JD and rendered below.`);
+      lines.push(`Printable version (print or save as PDF): ${WEB_BASE_URL}/resume/${s.resume.variantId}`);
       lines.push(RESUME_HTML_OPEN);
       lines.push(s.resume.html);
       lines.push(RESUME_HTML_CLOSE);

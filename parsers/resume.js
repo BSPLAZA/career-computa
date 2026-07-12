@@ -24,8 +24,8 @@ const BULLET_CHARS_PER_LINE = 98;                    // bullets are indented
 
 function stripEmDashes(s) {
   return String(s)
-    .replace(/\s*, \s*/g, ', ')
-    .replace(/\s*–\s*/g, ', ')
+    .replace(/\s*[\u2014\u2015]\s*/g, ', ')
+    .replace(/\s*\u2013\s*/g, ', ')
     .replace(/,\s*,/g, ',');
 }
 function esc(s) {
@@ -276,12 +276,12 @@ function gateBulletLint(model) {
   const problems = [];
   const allBullets = model.roles.flatMap((r) => r.bullets.map((b) => b.text)).concat(model.projects.map((p) => p.text));
   for (const t of allBullets) {
-    if (/, |–/.test(t)) problems.push('em dash: ' + t.slice(0, 50));
+    if (/[\u2013\u2014\u2015]/.test(t)) problems.push('em dash: ' + t.slice(0, 50));
     if (!/^[A-Z]/.test(t.trim())) problems.push('not verb-first capitalized: ' + t.slice(0, 50));
     if (estLines(t, BULLET_CHARS_PER_LINE) > 2) problems.push('over 2 lines: ' + t.slice(0, 50));
     if (SPELLED_NUMBERS.test(t)) problems.push('spelled-out number: ' + t.slice(0, 50));
   }
-  if (/, |–/.test(model.summary)) problems.push('em dash in summary');
+  if (/[\u2013\u2014\u2015]/.test(model.summary)) problems.push('em dash in summary');
   return { gate: 'bullet_lint', pass: problems.length === 0, note: problems.length ? problems.slice(0, 4).join(' | ') : allBullets.length + ' bullets pass verb-first, digits, 2-line, no-em-dash checks' };
 }
 

@@ -1,7 +1,9 @@
 // worker.js: long-running poller. Claims the next queued task every 5s and runs intake.
 // Errors mark the task failed and stay visible; the worker keeps going.
-// With ANNOUNCE=1 (the start script default) every delivery invokes
-// scripts/announce.mjs: the mp3 is always written, and it plays out loud (afplay).
+// Store hiccups (Convex unreachable, 5xx) back off exponentially up to 60s and
+// recovery is logged, so a flaky network never kills the loop.
+// ANNOUNCE=1 opts in to voice announcements via scripts/announce.mjs (mp3 plus
+// afplay). Off by default: the worker runs in a shared space now.
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import { loadEnv, REPO_ROOT } from './env.js';
@@ -25,19 +27,32 @@ function announceDelivery(text) {
   }
 }
 
+const BACKOFF_MAX_MS = 60_000;
+
 const store = makeStore();
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
-log(`worker up, store=${store.kind}, polling every ${POLL_MS / 1000}s`);
+log(`worker up (pid ${process.pid}), store=${store.kind}, polling every ${POLL_MS / 1000}s, announce=${process.env.ANNOUNCE === '1' ? 'on' : 'off'}`);
 
 let running = true;
+let storeFailures = 0; // consecutive claim failures; drives the backoff
 process.on('SIGINT', () => { running = false; log('shutting down after current task'); });
+process.on('SIGTERM', () => { running = false; log('SIGTERM: shutting down after current task'); });
+
+function backoffMs() {
+  return Math.min(POLL_MS * 2 ** Math.min(storeFailures, 6), BACKOFF_MAX_MS);
+}
 
 async function tick() {
   let task = null;
   try {
     task = await store.claimNextQueuedTask();
+    if (storeFailures > 0) {
+      log(`store reachable again after ${storeFailures} failed attempt(s); resuming normal polling`);
+      storeFailures = 0;
+    }
   } catch (err) {
-    log(`claim error (store unreachable?): ${err.message}`);
+    storeFailures += 1;
+    log(`claim error (store unreachable?): ${err.message}; attempt ${storeFailures}, backing off ${Math.round(backoffMs() / 1000)}s`);
     return;
   }
   if (!task) return;
@@ -62,6 +77,6 @@ async function tick() {
 
 while (running) {
   await tick();
-  await new Promise((r) => setTimeout(r, POLL_MS));
+  await new Promise((r) => setTimeout(r, storeFailures > 0 ? backoffMs() : POLL_MS));
 }
 log('worker stopped');

@@ -1,27 +1,37 @@
 // Apply-ready cards: one card per finished job package with everything the
-// user needs to act in under a minute. Data comes from the public digest
-// queue (artifacts grouped by task), the ledger (task status), and the
-// pipeline board (real applyUrl and jobId for state moves).
+// user needs to act in under a minute. Data comes from the tenant-scoped
+// digest queue (artifacts grouped by task, each task joined server-side to the
+// job the pipeline picked via task.jobId) and the ledger (task status). The
+// pipeline board is only a fallback for packages older than task.jobId.
 //
-// Honesty note: the public digestQueue caps artifact previews at 280 chars.
-// Blocks that hit the cap are labeled so copy never silently truncates.
+// Copy buttons copy the FULL artifact text: previews are swapped for full
+// content via the tenant-scoped public.getArtifact query. A block is labeled
+// only while its full text is still loading.
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api, convexClient, getMyUserId } from '../convex';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { useStore } from '../store';
 import { fmtDateTime } from '../util';
+import { useFullContents } from './fullContent';
+
+type JoinedJob = {
+  jobId: string; title: string; companyName: string | null; applyUrl: string;
+  state: string; fitScore: number | null; topCaveat: string | null;
+};
 
 type QueueRow = {
   artifactId: string; userId: string; taskId: string; runId: string;
   kind: string; variantId: string | null;
   gateResults: { gate: string; pass: boolean; note?: string }[];
-  sourceUrls: string[]; preview: string; taskKind: string | null; createdAt: number;
+  sourceUrls: string[]; preview: string; taskKind: string | null;
+  job: JoinedJob | null; createdAt: number;
 };
 
 type Pkg = {
   taskId: string; userId: string; createdAt: number;
   byKind: Partial<Record<string, QueueRow>>;
+  job: JoinedJob | null;
   role: string | null; company: string | null;
   fitScore: number | null; topCaveat: string | null;
   status: string | null;
@@ -79,15 +89,14 @@ function CopyBtn({ text, label }: { text: string; label?: string }) {
   );
 }
 
-function CopyBlock({ title, text, extra }: { title: string; text: string; extra?: React.ReactNode }) {
-  const capped = text.length >= PREVIEW_CAP;
+function CopyBlock({ title, text, capped, extra }: { title: string; text: string; capped?: boolean; extra?: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 10 }}>
       <div className="queue-head" style={{ marginBottom: 4 }}>
         <b style={{ fontSize: 12 }}>{title}</b>
         {extra}
         <CopyBtn text={text} />
-        {capped && <span className="badge b-warn" title="The public feed caps previews at 280 chars; the full text is in your delivered brief.">preview capped at 280 chars; full text in your brief</span>}
+        {capped && <span className="badge b-warn" title="Full text is still loading; the copy button copies exactly what is shown.">preview shown; full text loading</span>}
       </div>
       <div className="draft-body" style={{ margin: 0 }}>{text}</div>
     </div>
@@ -102,6 +111,13 @@ export default function LiveApplyReady() {
   const ledger = useQuery(api.public.ledger, { limit: 100 });
   const setJobState = useMutation(api.jobs.setJobState);
   const recordFeedback = useMutation(api.feedback.recordFeedback);
+
+  // Full artifact text for every block we render, so copy never truncates.
+  const artifactIds = useMemo(() => (rows ?? []).map(r => r.artifactId), [rows]);
+  const full = useFullContents(artifactIds);
+  const text = (r: QueueRow | undefined): string => (r ? (full[r.artifactId] ?? r.preview) : '');
+  const isCapped = (r: QueueRow | undefined): boolean =>
+    !!r && full[r.artifactId] === undefined && r.preview.length >= PREVIEW_CAP;
 
   const [boards, setBoards] = useState<Record<string, any[]>>({});
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
@@ -126,16 +142,26 @@ export default function LiveApplyReady() {
     for (const r of rows ?? []) {
       let g = groups.get(r.taskId);
       if (!g) {
-        g = { taskId: r.taskId, userId: r.userId, createdAt: r.createdAt, byKind: {}, role: null, company: null, fitScore: null, topCaveat: null, status: null };
+        g = { taskId: r.taskId, userId: r.userId, createdAt: r.createdAt, byKind: {}, job: null, role: null, company: null, fitScore: null, topCaveat: null, status: null };
         groups.set(r.taskId, g);
       }
       g.byKind[r.kind] = r;
+      if (r.job && !g.job) g.job = r.job;
       g.createdAt = Math.max(g.createdAt, r.createdAt);
     }
     const out: Pkg[] = [];
     for (const g of groups.values()) {
-      const fit = g.byKind['fit_report'];
-      if (fit) Object.assign(g, parseFitReport(fit.preview));
+      if (g.job) {
+        // Source of truth: the job row the pipeline bound to this task.
+        g.role = g.job.title;
+        g.company = g.job.companyName;
+        g.fitScore = g.job.fitScore;
+        g.topCaveat = g.job.topCaveat;
+      } else {
+        // Legacy packages without task.jobId: parse the fit report header.
+        const fit = g.byKind['fit_report'];
+        if (fit) Object.assign(g, parseFitReport(text(fit)));
+      }
       g.status = statusByTask.get(g.taskId) ?? null;
       // A package is apply-ready when it has outreach drafted; fit-only groups are still cooking.
       if (g.byKind['connection_note'] || g.byKind['dm_draft']) out.push(g);
@@ -146,12 +172,13 @@ export default function LiveApplyReady() {
       return mine !== 0 ? mine : b.createdAt - a.createdAt;
     });
     return out.slice(0, 24);
-  }, [rows, statusByTask, myId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, statusByTask, myId, full]);
 
-  // Pipeline boards per package owner: gives the real applyUrl and jobId.
+  // Fallback only: pipeline boards for package owners whose task predates task.jobId.
   useEffect(() => {
     if (!convexClient) return;
-    const uids = [...new Set(pkgs.map(p => p.userId))].filter(u => !(u in boards));
+    const uids = [...new Set(pkgs.filter(p => !p.job).map(p => p.userId))].filter(u => !(u in boards));
     if (uids.length === 0) return;
     let cancelled = false;
     (async () => {
@@ -169,6 +196,8 @@ export default function LiveApplyReady() {
   }, [pkgs, boards]);
 
   function matchJob(p: Pkg): any | null {
+    // Preferred path: the job the pipeline bound to this task. No guessing.
+    if (p.job) return { _id: p.job.jobId, applyUrl: p.job.applyUrl, state: p.job.state, title: p.job.title, companyName: p.job.companyName };
     const jobs = boards[p.userId];
     if (!jobs || !p.company) return null;
     const co = jobs.filter(j => j.companyName && norm(j.companyName) === norm(p.company!));
@@ -222,10 +251,14 @@ export default function LiveApplyReady() {
         const resume = p.byKind['resume_pdf'];
         const research = p.byKind['research_brief'];
         const brief = p.byKind['delivery_brief'];
-        const noteLen = note ? note.preview.length : 0;
-        const dmLines = dm ? dm.preview.split('\n') : [];
+        const noteText = text(note);
+        const noteLen = noteText.length;
+        const dmText = text(dm);
+        const dmLines = dmText ? dmText.split('\n') : [];
         const dmSubject = dmLines[0]?.replace(/^Subject:\s*/i, '') ?? '';
         const dmBody = dmLines.slice(1).join('\n').trim();
+        const resumeText = text(resume);
+        const resumeIsHtml = resumeText.trimStart().startsWith('<');
         const isApplied = applied.has(p.taskId) || job?.state === 'applied';
         return (
           <div className="queue-card" key={p.taskId}>
@@ -234,8 +267,11 @@ export default function LiveApplyReady() {
               <span className="muted">{p.role ?? 'role pending'}</span>
               {p.fitScore !== null && (
                 <span className={`fit ${p.fitScore >= 80 ? 'hi' : p.fitScore >= 65 ? 'mid' : 'lo'}`} title={p.topCaveat ?? ''}>
-                  fit {p.fitScore}{p.topCaveat ? `, ${p.topCaveat}` : ''}
+                  fit {p.fitScore}
                 </span>
+              )}
+              {p.fitScore !== null && p.topCaveat && (
+                <span className="fit-caveat" title={p.topCaveat}>{p.topCaveat}</span>
               )}
               {p.status && <span className={`badge ${p.status === 'delivered' ? 'b-ok' : 'b-info'}`}>{p.status}</span>}
               <span className="muted" style={{ marginLeft: 'auto', fontSize: 11 }}>{fmtDateTime(p.createdAt)}</span>
@@ -244,7 +280,7 @@ export default function LiveApplyReady() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
               <span className={`badge ${resume ? 'b-ok' : 'b-muted'}`}>{resume ? 'Resume rendered' : 'Resume pending'}</span>
               <span className={`badge ${p.status === 'delivered' || brief ? 'b-ok' : 'b-muted'}`}>
-                {brief ? 'Answers and brief below' : p.status === 'delivered' ? 'Answers in your delivered brief' : 'Answers pending'}
+                {brief ? 'Answers and brief below' : p.status === 'delivered' ? 'Brief delivered' : 'Brief pending'}
               </span>
               <span className={`badge ${note || dm ? 'b-ok' : 'b-muted'}`}>{note || dm ? 'Outreach drafted' : 'Outreach pending'}</span>
               <span className={`badge ${research ? 'b-ok' : 'b-muted'}`}>{research ? 'Research sourced' : 'Research pending'}</span>
@@ -253,10 +289,11 @@ export default function LiveApplyReady() {
             {note && (
               <CopyBlock
                 title="Connection note"
-                text={note.preview}
+                text={noteText}
+                capped={isCapped(note)}
                 extra={
                   <span className={`charcount ${noteLen > 300 ? 'over' : ''}`}>
-                    {noteLen >= PREVIEW_CAP ? '280+ shown (cap 300)' : `${noteLen}/300`}
+                    {isCapped(note) ? '280+ shown (cap 300)' : `${noteLen}/300`}
                   </span>
                 }
               />
@@ -265,12 +302,19 @@ export default function LiveApplyReady() {
               <CopyBlock title="DM subject" text={dmSubject} />
             )}
             {dm && dmBody && (
-              <CopyBlock title="DM body" text={dmBody} />
+              <CopyBlock title="DM body" text={dmBody} capped={isCapped(dm)} />
             )}
-            {brief && <CopyBlock title="Delivery brief (answers included)" text={brief.preview} extra={<a href={`/brief/${brief.artifactId}`} target="_blank" rel="noreferrer">open full brief</a>} />}
+            {brief && <CopyBlock title="Delivery brief (answers included)" text={text(brief)} capped={isCapped(brief)} extra={<a href={`/brief/${brief.artifactId}`} target="_blank" rel="noreferrer">open full brief</a>} />}
             {resume && (
               <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>
-                Resume variant: <span className="mono">{resume.preview.split('/').pop()}</span>{resume.variantId ? <> (variant <span className="mono">{resume.variantId}</span>)</> : null}
+                {resumeIsHtml && resume.variantId ? (
+                  <>
+                    Resume variant <span className="mono">{resume.variantId}</span>:{' '}
+                    <a href={`/resume/${resume.variantId}`} target="_blank" rel="noreferrer">open printable resume (print or save as PDF)</a>
+                  </>
+                ) : (
+                  <>Resume variant: <span className="mono">{resume.variantId ?? resumeText.split('/').pop()}</span></>
+                )}
               </div>
             )}
             {research && research.sourceUrls.length > 0 && (

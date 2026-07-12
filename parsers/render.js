@@ -115,7 +115,7 @@ async function condenseInventory(inventory) {
 }
 
 async function renderResume({ profile = {}, resumeText = '', job = {} }) {
-  const variantId = [slug(job.title || 'role'), Date.now().toString(36)].join('-');
+  const variantId = [slug(job.title || 'role'), Date.now().toString(36), require('node:crypto').randomBytes(6).toString('hex')].join('-');
   const rawInventory = loadInventory(profile);
   if (!rawInventory) {
     return {

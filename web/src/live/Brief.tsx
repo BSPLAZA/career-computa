@@ -50,6 +50,14 @@ export default function LiveBrief({ artifactId }: { artifactId: string }) {
               </>
             );
           })()}
+          {(brief.resumeVariants ?? []).length > 0 && (
+            <div className="src-urls" style={{ marginTop: 12 }}>
+              <span className="muted">Printable resume (open, then print or save as PDF):</span>
+              {(brief.resumeVariants ?? []).map(rv => (
+                <a key={rv.variantId} href={`/resume/${rv.variantId}`} target="_blank" rel="noreferrer">{rv.variantId}</a>
+              ))}
+            </div>
+          )}
           {brief.sourceUrls.length > 0 && (
             <div className="src-urls" style={{ marginTop: 12 }}>
               <span className="muted">Every company claim above is sourced:</span>

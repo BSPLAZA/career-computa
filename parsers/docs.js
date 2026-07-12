@@ -94,8 +94,8 @@ async function extractStarStories(txtPath, opts = {}) {
   return stories
     .filter((s) => s && s.title && s.text && s.excerpt)
     .map((s) => ({
-      title: String(s.title).replace(/, |–/g, ','),
-      text: String(s.text).replace(/, |–/g, ','),
+      title: String(s.title).replace(/\s*[\u2013\u2014\u2015]\s*/g, ', '),
+      text: String(s.text).replace(/\s*[\u2013\u2014\u2015]\s*/g, ', '),
       competencies: Array.isArray(s.competencies) ? s.competencies.map(String) : [],
       sourceDoc: path.basename(txtPath),
       excerpt: String(s.excerpt).slice(0, 600),

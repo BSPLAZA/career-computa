@@ -6,8 +6,9 @@
 //      and account switching takes a pasted id
 //   3. RESOLVED: Runs derives a recent-run picker from public.ledger runIds
 //      and auto-opens the newest run; no pasted runId needed
-//   4. digestQueue returns a 280 char preview, not full content; capped
-//      blocks are labeled wherever copy is offered
+//   4. RESOLVED: full artifact text loads through the tenant-scoped
+//      public.getArtifact query (useFullContents); the 280-char preview is
+//      only a fallback while the full text is in flight
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api, convexClient, getMyUserId, setMyUserId, clearMyUserId } from '../convex';
@@ -15,6 +16,7 @@ import type { Id } from '../../../convex/_generated/dataModel';
 import { useStore } from '../store';
 import { fmtTime, fmtDateTime, fmtUsd, fmtMs, truncate, isToday } from '../util';
 import OnboardVoice from '../onboard/Onboard';
+import { useFullContents } from './fullContent';
 
 const BOT_LINK_HELP = 'Open the link, hit Start, briefs arrive in that chat.';
 
@@ -179,16 +181,28 @@ export function LiveQueue() {
   const pending = (rows ?? []).filter(r => TAPPABLE.has(r.kind) && !decided.has(r.artifactId));
   const myId = getMyUserId();
 
-  // Company and role headers: sibling fit_report on the same task carries
-  // "# Fit report: <role> at <company>" in its preview.
+  // Full draft text for the tap queue: what you approve is what ships.
+  const queueArtifactIds = useMemo(() => pending.map(r => r.artifactId), [rows, decided]); // eslint-disable-line react-hooks/exhaustive-deps
+  const full = useFullContents(queueArtifactIds);
+  const textOf = (r: { artifactId: string; preview: string }) => full[r.artifactId] ?? r.preview;
+
+  // Company and role headers: the server joins each task to its picked job
+  // (task.jobId); fit_report preview parsing remains for pre-jobId packages.
   const headerByTask = new Map<string, string>();
   for (const r of rows ?? []) {
+    const job: { title: string; companyName: string | null } | null = (r as any).job ?? null;
+    if (job && !headerByTask.has(r.taskId)) {
+      headerByTask.set(r.taskId, job.companyName ? `${job.companyName}: ${job.title}` : job.title);
+      continue;
+    }
     if (r.kind !== 'fit_report') continue;
     const m = r.preview.match(/^# Fit report: (.+)$/m);
     if (!m) continue;
     const line = m[1].trim();
     const at = line.lastIndexOf(' at ');
-    headerByTask.set(r.taskId, at > 0 ? `${line.slice(at + 4).trim()}: ${line.slice(0, at).trim()}` : line);
+    if (!headerByTask.has(r.taskId)) {
+      headerByTask.set(r.taskId, at > 0 ? `${line.slice(at + 4).trim()}: ${line.slice(0, at).trim()}` : line);
+    }
   }
 
   async function verdict(r: NonNullable<typeof rows>[number], v: 'approve' | 'edit' | 'skip', reason?: string, editDiff?: string) {
@@ -213,20 +227,26 @@ export function LiveQueue() {
       {pending.map(r => {
         const isNote = r.kind === 'connection_note' || r.kind === 'dm_draft';
         const header = headerByTask.get(r.taskId);
+        const bodyText = textOf(r);
+        const stillLoading = full[r.artifactId] === undefined && r.preview.length >= 280;
         return (
           <div className="queue-card" key={r.artifactId}>
             <div className="queue-head">
               {header && <b style={{ fontSize: 14 }}>{header}</b>}
               <span className="badge b-purple">{r.kind.replace(/_/g, ' ')}</span>
-              {isNote && <span className="charcount">{r.preview.length >= 280 ? '280+ (preview cap)' : `${r.preview.length}/300`} chars</span>}
+              {isNote && (
+                <span className="charcount">
+                  {stillLoading ? '280+ (full text loading)' : r.kind === 'connection_note' ? `${bodyText.length}/300` : `${bodyText.length}`} chars
+                </span>
+              )}
               <span className="muted mono" style={{ marginLeft: 'auto' }}>run {r.runId.slice(0, 10)}...</span>
             </div>
             {state.demoMode && isNote && r.userId !== myId ? (
-              <div className="draft-body muted">[message body hidden in demo mode]</div>
+              <div className="draft-body muted">[hidden by privacy mask]</div>
             ) : editing === r.artifactId ? (
               <textarea className="draft-body" style={{ width: '100%', minHeight: 110 }} value={editText} onChange={e => setEditText(e.target.value)} />
             ) : (
-              <div className="draft-body">{r.preview}</div>
+              <div className="draft-body">{bodyText}</div>
             )}
             {r.gateResults.length > 0 && (
               <div style={{ marginBottom: 8 }}>
@@ -258,7 +278,7 @@ export function LiveQueue() {
               ) : (
                 <>
                   <button className="primary" onClick={() => verdict(r, 'approve')}>Approve</button>
-                  <button onClick={() => { setEditing(r.artifactId); setEditText(r.preview); }}>Edit</button>
+                  <button onClick={() => { setEditing(r.artifactId); setEditText(textOf(r)); }}>Edit</button>
                   <button onClick={() => setSkipping(r.artifactId)}>Skip</button>
                 </>
               )}
@@ -280,18 +300,18 @@ export function LiveLedger() {
   return (
     <div>
       <h2>Ledger</h2>
-      <p className="sub">Public work log. One row per task, every claim verifiable. Judge counters exclude team accounts.</p>
+      <p className="sub">The agency's work log. One row per task, every claim verifiable. Counters split member activity from the team's own accounts.</p>
       <div className="counters">
         {/* Zero-state leads with total completed so the hero never opens on a bare 0. */}
         {counters && counters.tasksCompletedToday.judge === 0 ? (
           <div className="counter hero">
             <div className="num">{counters.tasksCompletedTotal.total}</div>
-            <div className="lbl">tasks completed, all accounts ({counters.tasksCompletedToday.total} today; outsider count starts at first judge signup)</div>
+            <div className="lbl">tasks completed, all accounts ({counters.tasksCompletedToday.total} today; member count starts with the first outside signup)</div>
           </div>
         ) : (
           <div className="counter hero">
             <div className="num">{counters ? counters.tasksCompletedToday.judge : '...'}</div>
-            <div className="lbl">tasks completed today (outsiders only{counters ? `, ${counters.tasksCompletedToday.total} incl team` : ''})</div>
+            <div className="lbl">tasks completed today (members only{counters ? `, ${counters.tasksCompletedToday.total} including team` : ''})</div>
           </div>
         )}
         <div className="counter">

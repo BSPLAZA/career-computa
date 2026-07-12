@@ -79,6 +79,21 @@ export const escalateTask = mutation({
   },
 });
 
+// Binds the task to the job the pipeline picked, so surfaces join task -> job
+// directly instead of guessing by title. First pick wins; never overwrites.
+export const setTaskJob = mutation({
+  args: { taskId: v.id("tasks"), jobId: v.id("jobs") },
+  handler: async (ctx, args) => {
+    const task = await ctx.db.get(args.taskId);
+    if (!task) return { ok: false as const, error: "unknown_task" };
+    if (task.jobId !== undefined) return { ok: true as const, alreadySet: true };
+    const job = await ctx.db.get(args.jobId);
+    if (!job) return { ok: false as const, error: "unknown_job" };
+    await ctx.db.patch(args.taskId, { jobId: args.jobId });
+    return { ok: true as const, alreadySet: false };
+  },
+});
+
 export const getTask = query({
   args: { taskId: v.id("tasks") },
   handler: async (ctx, args) => ctx.db.get(args.taskId),

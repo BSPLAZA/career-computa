@@ -51,6 +51,8 @@ class ConvexStore {
     }
     return this.mutation('tasks:completeTask', { taskId, status });
   }
+  // Bind the task to the job the pipeline picked (first pick wins server-side).
+  setTaskJob({ taskId, jobId }) { return this.mutation('tasks:setTaskJob', { taskId, jobId }); }
   async createRun({ taskId, userId }) {
     const r = await this.mutation('runs:appendRun', { taskId, userId });
     return r.runId;
@@ -138,6 +140,13 @@ class LocalStore {
     const done = ['delivered', 'failed', 'escalated'].includes(status);
     this.patch('tasks', taskId, { status, ...(done ? { completedAt: Date.now() } : {}), ...(escalation ? { escalation } : {}) });
   }
+  async setTaskJob({ taskId, jobId }) {
+    const task = this.readAll('tasks').find((t) => t._id === taskId);
+    if (!task) return { ok: false, error: 'unknown_task' };
+    if (task.jobId !== undefined) return { ok: true, alreadySet: true };
+    this.patch('tasks', taskId, { jobId });
+    return { ok: true, alreadySet: false };
+  }
   async createRun({ taskId, userId }) { return this.insert('runs', { taskId, userId, startedAt: Date.now(), costUsd: 0, tokensIn: 0, tokensOut: 0 }); }
   async finishRun({ runId, success, error }) {
     const steps = this.readAll('runSteps').filter((s) => s.runId === runId);
@@ -183,6 +192,9 @@ class LocalStore {
 }
 
 export function makeStore() {
+  // Test hook: point the store at any deployment (or an unreachable one) without
+  // touching the repo-root .convex-url that other lanes read.
+  if (process.env.CONVEX_URL_OVERRIDE) return new ConvexStore(process.env.CONVEX_URL_OVERRIDE);
   const urlFile = join(REPO_ROOT, '.convex-url');
   if (existsSync(urlFile)) {
     const url = readFileSync(urlFile, 'utf8').trim();

@@ -157,7 +157,7 @@ export default function Runs() {
                 {a.deliveredVia && <span className="badge b-ok">delivered via {a.deliveredVia}</span>}
               </div>
               {state.demoMode && (a.kind === 'connection_note' || a.kind === 'dm_draft')
-                ? <div className="draft-body muted">[message body hidden in demo mode]</div>
+                ? <div className="draft-body muted">[hidden by privacy mask]</div>
                 : <div className="draft-body">{a.content}</div>}
               {a.sourceUrls && (
                 <div className="src-urls">

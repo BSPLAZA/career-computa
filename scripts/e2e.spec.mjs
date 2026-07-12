@@ -267,20 +267,27 @@ if (delivered) {
 }
 
 // =====================================================================
-// 6. Announce: a new mp3 landed for the delivered task
+// 6. Announce: a new mp3 landed for the delivered task.
+// ANNOUNCE is OFF by default now (the worker runs in a shared space), so this
+// is a hard assertion only when E2E_EXPECT_ANNOUNCE=1; otherwise a note.
 // =====================================================================
+const expectAnnounce = process.env.E2E_EXPECT_ANNOUNCE === '1';
 if (delivered) {
   let gained = [];
-  const annDeadline = Date.now() + 30000;
+  const annDeadline = Date.now() + (expectAnnounce ? 30000 : 5000);
   while (Date.now() < annDeadline) {
     const now = listMp3s();
     gained = now.filter(m => !mp3Before.some(b => b.f === m.f));
     if (gained.length > 0) break;
     await sleep(3000);
   }
-  record(6, 'artifacts/announcements gained an mp3 for the delivered task', gained.length > 0,
-    gained.length ? gained.map(g => g.f).join(', ') : `still ${mp3Before.length} mp3s, none new`);
-} else {
+  if (expectAnnounce || gained.length > 0) {
+    record(6, 'artifacts/announcements gained an mp3 for the delivered task', gained.length > 0,
+      gained.length ? gained.map(g => g.f).join(', ') : `still ${mp3Before.length} mp3s, none new`);
+  } else {
+    note('announcements are off by default now (ANNOUNCE=0, shared space); mp3 check skipped. Set E2E_EXPECT_ANNOUNCE=1 when the worker runs with ANNOUNCE=1.');
+  }
+} else if (expectAnnounce) {
   record(6, 'announcement mp3 for delivered task', false, 'task never delivered, so no announcement expected');
 }
 

@@ -1,11 +1,13 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 
 function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
   if (!domain) return "***";
   const head = local.length > 0 ? local[0] : "*";
-  return `${head}***@${domain}`;
+  const tld = domain.includes(".") ? domain.slice(domain.lastIndexOf(".")) : "";
+  return `${head}***@***${tld}`;
 }
 
 // Start of today in Pacific time. PDT offset hardcoded; the event runs in July (UTC-7).
@@ -123,11 +125,20 @@ export const counters = query({
 
 // Full delivery brief by artifact id: backs the unique /brief/<artifactId> link.
 // Only delivery_brief artifacts are exposed on this public path.
+// resumeVariants lists sibling rendered resume variants of the same task so the
+// brief page can link the printable /resume/<variantId> view.
 export const getBrief = query({
   args: { artifactId: v.id("artifacts") },
   handler: async (ctx, args) => {
     const a = await ctx.db.get(args.artifactId);
     if (!a || a.kind !== "delivery_brief") return null;
+    const siblings = await ctx.db
+      .query("artifacts")
+      .withIndex("by_taskId", (q) => q.eq("taskId", a.taskId))
+      .collect();
+    const resumeVariants = siblings
+      .filter((s) => s.kind === "resume_pdf" && s.variantId !== undefined && s.content.trimStart().startsWith("<"))
+      .map((s) => ({ variantId: s.variantId as string, artifactId: s._id }));
     return {
       artifactId: a._id,
       kind: a.kind,
@@ -137,6 +148,71 @@ export const getBrief = query({
       deliveredVia: a.deliveredVia ?? null,
       deliveredAt: a.deliveredAt ?? null,
       createdAt: a._creationTime,
+      resumeVariants,
+    };
+  },
+});
+
+// Full artifact by id, tenant scoped. Access requires either the owner's userId
+// or a valid brief token: the artifact id of a delivery_brief on the same task
+// (possession of the unique brief link grants that task's package, matching the
+// existing /brief/<id> capability model). Anything else gets null, same as a miss.
+export const getArtifact = query({
+  args: {
+    artifactId: v.id("artifacts"),
+    userId: v.optional(v.id("users")),
+    briefToken: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const a = await ctx.db.get(args.artifactId);
+    if (!a) return null;
+    let authorized = args.userId !== undefined && a.userId === args.userId;
+    if (!authorized && args.briefToken) {
+      const briefId = ctx.db.normalizeId("artifacts", args.briefToken);
+      if (briefId) {
+        const brief = await ctx.db.get(briefId);
+        if (brief && brief.kind === "delivery_brief" && brief.taskId === a.taskId) authorized = true;
+      }
+    }
+    if (!authorized) return null;
+    return {
+      artifactId: a._id,
+      userId: a.userId,
+      taskId: a.taskId,
+      runId: a.runId,
+      kind: a.kind,
+      content: a.content,
+      variantId: a.variantId ?? null,
+      gateResults: a.gateResults ?? [],
+      sourceUrls: a.sourceUrls ?? [],
+      deliveredVia: a.deliveredVia ?? null,
+      deliveredAt: a.deliveredAt ?? null,
+      createdAt: a._creationTime,
+    };
+  },
+});
+
+// Printable resume view: /resume/<variantId>. Variant ids are per-render
+// capability strings (slug plus timestamp); only rendered HTML resume artifacts
+// are served here, never file paths or placeholder text.
+export const getResumeByVariant = query({
+  args: { variantId: v.string() },
+  handler: async (ctx, args) => {
+    const variantId = args.variantId.trim();
+    if (!variantId) return null;
+    const resumes = await ctx.db
+      .query("artifacts")
+      .withIndex("by_kind", (q) => q.eq("kind", "resume_pdf"))
+      .order("desc")
+      .take(500);
+    const hit = resumes.find((r) => r.variantId === variantId && r.content.trimStart().startsWith("<"));
+    if (!hit) return null;
+    return {
+      artifactId: hit._id,
+      variantId,
+      html: hit.content,
+      gateResults: hit.gateResults ?? [],
+      createdAt: hit._creationTime,
     };
   },
 });
@@ -155,8 +231,43 @@ export const digestQueue = query({
       .take(200);
     const pending = artifacts.filter((a) => a.deliveredAt === undefined);
     const rows = [];
+    // Joined per task: the task's jobId (set by the pipeline when it picks the
+    // job) plus the job row's real title, company, applyUrl, and state. This is
+    // the source of truth for Ready cards; no title parsing needed client-side.
+    type JoinedJob = {
+      jobId: Id<"jobs">; title: string; companyName: string | null; applyUrl: string;
+      state: string; fitScore: number | null; topCaveat: string | null;
+    };
+    const taskCache = new Map<Id<"tasks">, { kind: string | null; jobId: Id<"jobs"> | null }>();
+    const jobCache = new Map<Id<"jobs">, JoinedJob | null>();
     for (const a of pending) {
-      const task = await ctx.db.get(a.taskId);
+      let t = taskCache.get(a.taskId);
+      if (!t) {
+        const task = await ctx.db.get(a.taskId);
+        t = { kind: task?.kind ?? null, jobId: task?.jobId ?? null };
+        taskCache.set(a.taskId, t);
+      }
+      let job: JoinedJob | null = null;
+      if (t.jobId) {
+        if (!jobCache.has(t.jobId)) {
+          const j = await ctx.db.get(t.jobId);
+          if (j) {
+            const company = await ctx.db.get(j.companyId);
+            jobCache.set(t.jobId, {
+              jobId: t.jobId,
+              title: j.title,
+              companyName: company?.name ?? null,
+              applyUrl: j.applyUrl,
+              state: j.state,
+              fitScore: j.fitScore ?? null,
+              topCaveat: (j.caveats ?? [])[0] ?? null,
+            });
+          } else {
+            jobCache.set(t.jobId, null);
+          }
+        }
+        job = jobCache.get(t.jobId) ?? null;
+      }
       rows.push({
         artifactId: a._id,
         userId: a.userId,
@@ -167,7 +278,8 @@ export const digestQueue = query({
         gateResults: a.gateResults ?? [],
         sourceUrls: a.sourceUrls ?? [],
         preview: a.content.slice(0, 280),
-        taskKind: task?.kind ?? null,
+        taskKind: t.kind,
+        job,
         createdAt: a._creationTime,
       });
     }

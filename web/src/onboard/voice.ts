@@ -103,29 +103,11 @@ export async function extractTranscript(transcript: string): Promise<{ ok: true;
   }
 }
 
-// ---------- live board registry (mirror of agents/boards.js keys; scan tasks must be board:<key>) ----------
-export const LIVE_BOARDS: { key: string; name: string }[] = [
-  { key: 'anthropic', name: 'Anthropic' },
-  { key: 'stripe', name: 'Stripe' },
-  { key: 'databricks', name: 'Databricks' },
-  { key: 'figma', name: 'Figma' },
-  { key: 'instacart', name: 'Instacart' },
-  { key: 'scaleai', name: 'Scale AI' },
-  { key: 'coinbase', name: 'Coinbase' },
-  { key: 'brex', name: 'Brex' },
-  { key: 'samsara', name: 'Samsara' },
-  { key: 'pinterest', name: 'Pinterest' },
-  { key: 'gusto', name: 'Gusto' },
-  { key: 'robinhood', name: 'Robinhood' },
-  { key: 'sierra', name: 'Sierra' },
-  { key: 'openai', name: 'OpenAI' },
-  { key: 'clickhouse', name: 'ClickHouse' },
-  { key: 'supabase', name: 'Supabase' },
-  { key: 'linear', name: 'Linear' },
-  { key: 'ramp', name: 'Ramp' },
-  { key: 'veeva', name: 'Veeva' },
-  { key: 'matchgroup', name: 'Match Group' },
-];
+// ---------- live board registry ----------
+// Generated from agents/boards.js (the single source of board truth) by
+// scripts/gen-boards.mjs; the web build regenerates it, so it never drifts.
+import { LIVE_BOARDS } from './boards.gen';
+export { LIVE_BOARDS };
 
 // "Open A.I." -> openai, "scale ai" -> scaleai, "Match Group" -> matchgroup
 export function matchBoard(companyName: string): { key: string; name: string } | null {

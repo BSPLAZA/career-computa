@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node scripts/fit-eval.mjs"
+    "test": "node scripts/fit-eval.mjs",
+    "worker": "node agents/worker.js",
+    "gen:boards": "node scripts/gen-boards.mjs"
   },
   "keywords": [],
   "author": "",

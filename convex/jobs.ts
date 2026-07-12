@@ -76,6 +76,8 @@ export const assessJob = mutation({
   handler: async (ctx, args) => {
     const job = await ctx.db.get(args.jobId);
     if (!job) return { ok: false as const, error: "unknown_job" };
+    const terminal = ["closed", "ghosted", "applied", "screening", "interviewing"];
+    if (terminal.includes(job.state)) return { ok: false as const, error: "state_terminal" };
     const rejected = args.hardFilterResult?.rejected === true;
     await ctx.db.patch(args.jobId, {
       fitScore: args.fitScore,
@@ -110,7 +112,7 @@ export const setJobState = mutation({
 export const assessedUrlsForUser = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    const states = ["assessed", "queued", "delivered", "applied", "screening", "interviewing"] as const;
+    const states = ["assessed", "queued", "delivered", "applied", "screening", "interviewing", "auto_rejected", "closed", "ghosted"] as const;
     const urls: string[] = [];
     for (const state of states) {
       const rows = await ctx.db
